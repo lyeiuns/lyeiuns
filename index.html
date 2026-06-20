@@ -1141,6 +1141,8 @@ nav::before {
   flex-shrink: 0;
 }
 
+#list-pick-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; align-items: flex-end; }
+#list-pick-modal.open { display: flex !important; }
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -2048,7 +2050,7 @@ async function openDetail(id) {
   navigate('detail');
   document.getElementById('chapter-list').innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const res=await fetch(API + "/manga/${id}?includes[]=cover_art");
+    const res=await fetch(API + `/manga/${id}?includes[]=cover_art`);
     const data=await res.json();
     const m=data.data;
     S.currentManga=m;
@@ -2061,7 +2063,7 @@ async function openDetail(id) {
     document.getElementById('detail-type').textContent=type;
     document.getElementById('detail-desc').textContent=desc;
     document.getElementById('detail-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
-    const chapRes=await fetch(API + "/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive");
+    const chapRes=await fetch(API + `/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`);
     const chapData=await chapRes.json();
     S.currentChapters=chapData.data||[];
     if(!S.currentChapters.length){document.getElementById('chapter-list').innerHTML='<div class="empty"><p>No English chapters found</p></div>';return;}
@@ -2106,7 +2108,7 @@ async function openChapter(chapterId,chapterNum,idx) {
   }
 
   try {
-    const res=await fetch(API + "/at-home/server/${chapterId}");
+    const res=await fetch(API + `/at-home/server/${chapterId}`);
     const data=await res.json();
     const pages=data.chapter?.data||[];
     if(!pages.length){document.getElementById('reader-images').innerHTML='<div class="empty"><p>No pages</p></div>';return;}
@@ -2190,23 +2192,48 @@ function deleteList(i){
   save('lyeiuns-lists',S.custom_lists);
   renderLists();
 }
-function addToList(){
-  if(!S.currentManga){toast('Open a manga first');return;}
-  if(!S.custom_lists.length){toast('Create a list first in Lists tab');return;}
-  if(S.custom_lists.length===1){
-    if(S.custom_lists[0].items.find(m=>m.id===S.currentManga.id)){toast('Already in that list!');return;}
-    S.custom_lists[0].items.push(S.currentManga);
-    save('lyeiuns-lists',S.custom_lists);
-    toast(`Added to "${S.custom_lists[0].name}" ✓`);
+function addToList() {
+  if(!S.currentManga) { toast('Open a manga first'); return; }
+  if(!S.custom_lists.length) {
+    toast('Create a list first in the Lists tab');
+    navigate('lists');
     return;
   }
-  const name=prompt('Which list?\n'+S.custom_lists.map((l,i)=>`${i}: ${l.name}`).join('\n')+'\n\nEnter number:');
-  const idx=parseInt(name);
-  if(isNaN(idx)||idx<0||idx>=S.custom_lists.length) return;
-  if(S.custom_lists[idx].items.find(m=>m.id===S.currentManga.id)){toast('Already in that list!');return;}
-  S.custom_lists[idx].items.push(S.currentManga);
-  save('lyeiuns-lists',S.custom_lists);
-  toast(`Added to "${S.custom_lists[idx].name}" ✓`);
+  // Show list picker modal
+  const title = getTitle(S.currentManga);
+  const listItems = S.custom_lists.map(function(l, i) {
+    const inList = l.items && l.items.find(function(m){ return m.id === S.currentManga.id; });
+    return '<div class="list-pick-item" onclick="addToListIdx(' + i + ')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer">' +
+      '<div><div style="font-size:14px;font-weight:600;color:var(--text)">' + l.name + '</div>' +
+      '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + (l.items ? l.items.length : 0) + ' titles</div></div>' +
+      '<div style="font-size:18px">' + (inList ? '✅' : '＋') + '</div></div>';
+  }).join('');
+  
+  const modal = document.getElementById('list-pick-modal');
+  const body = document.getElementById('list-pick-body');
+  const titleEl = document.getElementById('list-pick-title');
+  if(titleEl) titleEl.textContent = 'Add "' + title + '" to list';
+  if(body) body.innerHTML = listItems + '<div onclick="navigate(&quot;lists&quot;)" style="text-align:center;padding:14px;color:var(--accent2);cursor:pointer;font-size:13px">+ Create new list</div>';
+  if(modal) modal.classList.add('open');
+}
+
+function addToListIdx(idx) {
+  if(!S.currentManga || !S.custom_lists[idx]) return;
+  const list = S.custom_lists[idx];
+  if(!list.items) list.items = [];
+  if(list.items.find(function(m){ return m.id === S.currentManga.id; })) {
+    toast('Already in "' + list.name + '"');
+    return;
+  }
+  list.items.push(S.currentManga);
+  save('lyeiuns-lists', S.custom_lists);
+  toast('Added to "' + list.name + '" ✓');
+  closeListPicker();
+}
+
+function closeListPicker() {
+  const modal = document.getElementById('list-pick-modal');
+  if(modal) modal.classList.remove('open');
 }
 
 // ═══════════════════════════════════════════
@@ -3001,7 +3028,7 @@ async function checkUpdates() {
   let updated = 0;
   try {
     for(const manga of S.library.slice(0,20)) {
-      const res = await fetch(API + "/manga/${manga.id}/feed?limit=1&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive");
+      const res = await fetch(API + `/manga/${manga.id}/feed?limit=1&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`);
       const data = await res.json();
       const latest = data.data?.[0];
       if(latest) {
@@ -3258,7 +3285,7 @@ window.openDetail = async function(id) {
   navigate('detail');
   document.getElementById('chapter-list').innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const res = await fetch(API + "/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist");
+    const res = await fetch(API + `/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist`);
     const data = await res.json();
     const m = data.data;
     S.currentManga = m;
@@ -3303,7 +3330,7 @@ window.openDetail = async function(id) {
     updateDetailStatusBadge(currentStatus);
 
     // chapters
-    const chapRes = await fetch(API + "/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive");
+    const chapRes = await fetch(API + `/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`);
     const chapData = await chapRes.json();
     S.currentChapters = chapData.data||[];
     if(!S.currentChapters.length) { document.getElementById('chapter-list').innerHTML='<div class="empty"><p>No English chapters found</p></div>'; return; }
