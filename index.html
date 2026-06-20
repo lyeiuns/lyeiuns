@@ -1143,6 +1143,7 @@ nav::before {
 
 #list-pick-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; align-items: flex-end; }
 #list-pick-modal.open { display: flex !important; }
+.pop-period-btn.active { background: var(--manga-red) !important; color: white !important; border-color: var(--manga-red) !important; }
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -1294,6 +1295,11 @@ nav::before {
       <button class="home-tab" onclick="switchTab('ko',this)">Manhwa</button>
       <button class="home-tab" onclick="switchTab('zh',this)">Manhua</button>
       
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none">
+      <button class="pop-period-btn active" onclick="setPopularPeriod('all',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:var(--manga-red);color:white;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">ALL TIME</button>
+      <button class="pop-period-btn" onclick="setPopularPeriod('month',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS MONTH</button>
+      <button class="pop-period-btn" onclick="setPopularPeriod('week',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS WEEK</button>
     </div>
     <div id="home-active-filters" class="active-filters"></div>
     <div id="popular-grid" class="manga-grid"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
@@ -1972,23 +1978,48 @@ function buildUrl(base, filters) {
   return url;
 }
 
+// Popular time period filter
+let popularPeriod = 'all'; // 'week' | 'month' | 'all'
+
+function setPopularPeriod(period, el) {
+  popularPeriod = period;
+  document.querySelectorAll('.pop-period-btn').forEach(b => b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  loadPopular();
+}
+
 async function loadPopular() {
   const el=document.getElementById('popular-grid');
   el.innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    let url;
-    if(S.popularLang==='seasonal'){
-      const d=new Date(),start=new Date(d.getFullYear(),Math.floor(d.getMonth()/3)*3,1).toISOString();
-      url=`${API}/manga?limit=12&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&createdAtSince=${start}`;
+    let url = API + '/manga?limit=18&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&availableTranslatedLanguage[]=en';
+    
+    // Time period sorting
+    if(popularPeriod === 'week') {
+      const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+      url += '&order[followedCount]=desc&updatedAtSince=' + since;
+    } else if(popularPeriod === 'month') {
+      const since = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+      url += '&order[followedCount]=desc&updatedAtSince=' + since;
     } else {
-      url=`${API}/manga?limit=12&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`;
-      if(S.popularLang) url+=`&originalLanguage[]=${S.popularLang}`;
+      url += '&order[followedCount]=desc';
     }
-    S.homeFilters.tags.forEach(id=>{url+=`&includedTags[]=${id}`;});
-    const res=await fetch(url);
-    const data=await res.json();
-    el.innerHTML=data.data?.length?data.data.map(renderCard).join(''):'<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try different filters</p></div>';
-  } catch(e){el.innerHTML='<div class="empty"><p>Failed to load</p></div>';}
+
+    // Language filter (All/Manga/Manhwa/Manhua)
+    if(S.popularLang) url += '&originalLanguage[]=' + S.popularLang;
+
+    // Tag filters
+    S.homeFilters.tags.forEach(function(id){ url += '&includedTags[]=' + id; });
+
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Status ' + res.status);
+    const data = await res.json();
+    el.innerHTML = data.data && data.data.length
+      ? data.data.map(renderCard).join('')
+      : '<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try different filters</p></div>';
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><p>Failed to load</p><button onclick="loadPopular()" style="margin-top:8px;padding:6px 16px;background:var(--accent);border:none;color:white;border-radius:8px;cursor:pointer;font-size:12px">↺ Retry</button></div>';
+  }
 }
 
 async function loadRecent() {
