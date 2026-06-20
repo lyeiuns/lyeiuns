@@ -1704,7 +1704,7 @@ nav::before {
 // ═══════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════
-const PROXY = 'https://api.allorigins.win/raw?url='; // fallback
+const PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api'; // CF Worker API proxy
 // ── CLOUDFLARE IMAGE PROXY ──────────────────────────────────────────────────
 // After deploying your worker, replace YOUR-NAME below with your CF subdomain
 // e.g. 'https://lyeiuns-proxy.bob123.workers.dev'
@@ -1716,7 +1716,7 @@ function proxyImg(url) {
   if(USE_CF_PROXY) return CF_PROXY + '?url=' + encodeURIComponent(url);
   return url; // direct until proxy is deployed
 }
-const API = 'https://api.mangadex.org';
+const API = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api';
 
 
 const GENRES = [
@@ -2942,35 +2942,30 @@ async function loadWeek() {
   const el = document.getElementById('week-grid');
   if(!el) return;
   try {
-    const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
-    const url = `${API}/manga?limit=10&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&updatedAtSince=${since}`;
-    const res = await fetch(PROXY+encodeURIComponent(url));
+    const res = await fetch(API + '/manga?limit=10&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive');
+    if(!res.ok) throw new Error('Status ' + res.status);
     const data = await res.json();
-    if(!data.data?.length){el.innerHTML='<div class="empty"><p>Nothing new this week</p></div>';return;}
-    el.innerHTML = data.data.map(m=>{
-      const cover=getCover(m), title=getTitle(m), type=getType(m);
-      const updated = m.attributes?.updatedAt;
-      return `<div class="week-item" onclick="openDetail('${esc(m.id)}')">
-        <img class="week-cover" src="${cover||''}" alt="" onerror="this.style.background='var(--surface2)'">
-        <div class="week-info">
-          <div class="week-title">${title}</div>
-          <div class="week-ch">${type} · Updated ${timeAgo(updated)}</div>
-        </div>
-        <div style="color:var(--accent2);font-size:18px;flex-shrink:0">›</div>
-      </div>`;
+    if(!data.data || !data.data.length) {
+      el.innerHTML = getChibiEmpty('sleep', 'Nothing This Week', 'Check back soon');
+      return;
+    }
+    el.innerHTML = data.data.map(function(m) {
+      const cover = getCover(m);
+      const title = getTitle(m);
+      const type = getType(m);
+      return '<div class="week-item" onclick="openDetail(\'' + esc(m.id) + '\')">' +
+        '<div class="week-cover">' +
+        (cover ? '<img src="' + cover + '" alt="" loading="lazy" onerror="if(this.src.includes(\'.512.\')){this.src=this.src.replace(\'.512.\',\'.256.\');}else{this.style.display=\'none\';}">' : '') +
+        '</div>' +
+        '<div class="week-info"><div class="week-title">' + title + '</div>' +
+        '<div class="week-type">' + type + '</div></div></div>';
     }).join('');
-  } catch(e) { if(el) el.innerHTML='<div class="empty"><p>Failed to load</p></div>'; }
+  } catch(e) {
+    el.innerHTML = getChibiEmpty('shrug', 'Failed to Load', 'Tap to retry') +
+      '<div style="text-align:center;margin-top:8px"><button onclick="loadWeek()" style="padding:6px 16px;background:var(--accent);border:none;color:white;border-radius:8px;cursor:pointer;font-size:12px">↺ Retry</button></div>';
+  }
 }
 
-// ═══════════════════════════════════════════
-// SEARCH SUGGESTIONS
-// ═══════════════════════════════════════════
-let suggTimer = null;
-function onSearchInput(val) {
-  clearTimeout(suggTimer);
-  if(val.length < 2) { hideSuggestions(); return; }
-  suggTimer = setTimeout(()=>fetchSuggestions(val), 350);
-}
 async function fetchSuggestions(query) {
   if(query.length < 2) return;
   try {
