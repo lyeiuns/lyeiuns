@@ -1983,7 +1983,7 @@ async function loadPopular() {
 
 async function loadRecent() {
   try {
-    const res=await fetch(PROXY+encodeURIComponent(`${API}/manga?limit=12&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`));
+    const res=await fetch(`${API}/manga?limit=12&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`);
     const data=await res.json();
     document.getElementById('recent-grid').innerHTML=data.data?.length?data.data.map(renderCard).join(''):'<div class="empty"><p>Nothing here</p></div>';
   } catch(e){document.getElementById('recent-grid').innerHTML='<div class="empty"><p>Failed to load</p></div>';}
@@ -1999,19 +1999,38 @@ function switchTab(lang,el) {
 // ═══════════════════════════════════════════
 // SEARCH
 // ═══════════════════════════════════════════
+// Search result cache to avoid duplicate API calls
+const searchCache = {};
+
 async function doSearch(query) {
-  if(!query.trim()) return;
+  if(!query || !query.trim()) return;
   navigate('search');
-  document.getElementById('main-search').value=query;
-  const el=document.getElementById('search-results');
-  el.innerHTML='<div class="loading"><div class="spinner"></div><span>Searching...</span></div>';
+  const q = query.trim();
+  document.getElementById('main-search').value = q;
+  const el = document.getElementById('search-results');
+  if(!el) return;
+
+  // Use cached results if available (avoids double API call from suggestions)
+  if(searchCache[q]) {
+    el.innerHTML = searchCache[q];
+    return;
+  }
+
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Searching...</span></div>';
   try {
-    let url=`${API}/manga?limit=24&title=${encodeURIComponent(query)}&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`;
-    url=buildUrl(url,S.searchFilters);
-    const res=await fetch(PROXY+encodeURIComponent(url));
-    const data=await res.json();
-    el.innerHTML=data.data?.length?data.data.map(renderCard).join(''):'<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try a different search</p></div>';
-  } catch(e){el.innerHTML='<div class="empty"><p>Search failed</p></div>';}
+    let url = API + '/manga?limit=24&title=' + encodeURIComponent(q) + '&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive';
+    url = buildUrl(url, S.searchFilters);
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Status ' + res.status);
+    const data = await res.json();
+    const html = data.data && data.data.length
+      ? data.data.map(renderCard).join('')
+      : '<div class="empty"><div class="empty-icon">😶</div><h3>No results for "' + q + '"</h3><p>Try different keywords</p></div>';
+    searchCache[q] = html;
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = getChibiEmpty('shrug','Search Failed','Check connection and retry');
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -2021,7 +2040,7 @@ async function openDetail(id) {
   navigate('detail');
   document.getElementById('chapter-list').innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const res=await fetch(PROXY+encodeURIComponent(`${API}/manga/${id}?includes[]=cover_art`));
+    const res=await fetch(API + "/manga/${id}?includes[]=cover_art");
     const data=await res.json();
     const m=data.data;
     S.currentManga=m;
@@ -2034,7 +2053,7 @@ async function openDetail(id) {
     document.getElementById('detail-type').textContent=type;
     document.getElementById('detail-desc').textContent=desc;
     document.getElementById('detail-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
-    const chapRes=await fetch(PROXY+encodeURIComponent(`${API}/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`));
+    const chapRes=await fetch(API + "/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive");
     const chapData=await chapRes.json();
     S.currentChapters=chapData.data||[];
     if(!S.currentChapters.length){document.getElementById('chapter-list').innerHTML='<div class="empty"><p>No English chapters found</p></div>';return;}
@@ -2079,7 +2098,7 @@ async function openChapter(chapterId,chapterNum,idx) {
   }
 
   try {
-    const res=await fetch(PROXY+encodeURIComponent(`${API}/at-home/server/${chapterId}`));
+    const res=await fetch(API + "/at-home/server/${chapterId}");
     const data=await res.json();
     const pages=data.chapter?.data||[];
     if(!pages.length){document.getElementById('reader-images').innerHTML='<div class="empty"><p>No pages</p></div>';return;}
@@ -2455,7 +2474,7 @@ async function loadTop10() {
 async function loadFeatured() {
   const SOLO_LEVELING_ID = '32d76d19-8a05-4db0-9fc2-e0b0648fe9d0';
   try {
-    const res = await fetch(PROXY+encodeURIComponent(`${API}/manga/${SOLO_LEVELING_ID}?includes[]=cover_art`));
+    const res = await fetch(API + "/manga/${SOLO_LEVELING_ID}?includes[]=cover_art");
     const data = await res.json();
     const m = data.data;
     if(!m) return;
@@ -2989,7 +3008,7 @@ async function checkUpdates() {
   let updated = 0;
   try {
     for(const manga of S.library.slice(0,20)) {
-      const res = await fetch(PROXY+encodeURIComponent(`${API}/manga/${manga.id}/feed?limit=1&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`));
+      const res = await fetch(API + "/manga/${manga.id}/feed?limit=1&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive");
       const data = await res.json();
       const latest = data.data?.[0];
       if(latest) {
@@ -3246,7 +3265,7 @@ window.openDetail = async function(id) {
   navigate('detail');
   document.getElementById('chapter-list').innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const res = await fetch(PROXY+encodeURIComponent(`${API}/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist`));
+    const res = await fetch(API + "/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist");
     const data = await res.json();
     const m = data.data;
     S.currentManga = m;
@@ -3291,7 +3310,7 @@ window.openDetail = async function(id) {
     updateDetailStatusBadge(currentStatus);
 
     // chapters
-    const chapRes = await fetch(PROXY+encodeURIComponent(`${API}/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`));
+    const chapRes = await fetch(API + "/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive");
     const chapData = await chapRes.json();
     S.currentChapters = chapData.data||[];
     if(!S.currentChapters.length) { document.getElementById('chapter-list').innerHTML='<div class="empty"><p>No English chapters found</p></div>'; return; }
@@ -3460,15 +3479,16 @@ function skipIntro() {
 // ═══════════════════════════════════════════
 applyTheme();
 renderLibrary();
-setTimeout(function(){ updateNavPill("home"); }, 200);
 renderContinue();
-loadBanner();
-loadPopular();
-loadRecent();
-loadWeek();
 updateStreak();
-loadFeatured();
-loadTop10();
+// Stagger API calls to avoid MangaDex rate limiting
+setTimeout(function(){ updateNavPill("home"); }, 100);
+setTimeout(function(){ loadBanner(); }, 0);
+setTimeout(function(){ loadPopular(); }, 400);
+setTimeout(function(){ loadFeatured(); }, 800);
+setTimeout(function(){ loadTop10(); }, 1200);
+setTimeout(function(){ loadRecent(); }, 1600);
+setTimeout(function(){ loadWeek(); }, 2000);
 </script>
 </body>
 </html>
