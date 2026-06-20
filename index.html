@@ -3,12 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#07070d">
+<!-- theme already set below -->
+  <meta name="theme-color-skip" content="#07070d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LYEIUNS">
 <meta name="description" content="Read manga, manhwa and manhua — all in one place">
 <title>lyeiuns</title>
+  <!-- Inline favicon - no external file needed -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0806'/><text x='5' y='24' font-family='serif' font-size='24' font-weight='900' fill='%23e63946'>L</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0806'/><text x='5' y='24' font-family='serif' font-size='24' font-weight='900' fill='%23e63946'>L</text></svg>">
+  <!-- Minimal web manifest inline -->
+  <meta name="theme-color" content="#0a0806">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="LYEIUNS">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1292,7 +1300,7 @@ nav::before {
     <div class="section-header">
       <div class="section-title"><span class="section-num">02</span> New<span class="jp-sub">今週の新着</span></div>
     </div>
-    <div id="week-grid" class="week-grid"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
+    <div id="week-grid" class="manga-grid"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
   </div>
   <div class="section">
     <div class="section-header">
@@ -2949,17 +2957,7 @@ async function loadWeek() {
       el.innerHTML = getChibiEmpty('sleep', 'Nothing This Week', 'Check back soon');
       return;
     }
-    el.innerHTML = data.data.map(function(m) {
-      const cover = getCover(m);
-      const title = getTitle(m);
-      const type = getType(m);
-      return '<div class="week-item" onclick="openDetail(\'' + esc(m.id) + '\')">' +
-        '<div class="week-cover">' +
-        (cover ? '<img src="' + cover + '" alt="" loading="lazy" onerror="if(this.src.includes(\'.512.\')){this.src=this.src.replace(\'.512.\',\'.256.\');}else{this.style.display=\'none\';}">' : '') +
-        '</div>' +
-        '<div class="week-info"><div class="week-title">' + title + '</div>' +
-        '<div class="week-type">' + type + '</div></div></div>';
-    }).join('');
+    el.innerHTML = data.data.map(renderCard).join('');
   } catch(e) {
     el.innerHTML = getChibiEmpty('shrug', 'Failed to Load', 'Tap to retry') +
       '<div style="text-align:center;margin-top:8px"><button onclick="loadWeek()" style="padding:6px 16px;background:var(--accent);border:none;color:white;border-radius:8px;cursor:pointer;font-size:12px">↺ Retry</button></div>';
