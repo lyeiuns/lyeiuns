@@ -2482,7 +2482,7 @@ async function loadTop10() {
 async function loadFeatured() {
   const SOLO_LEVELING_ID = '32d76d19-8a05-4db0-9fc2-e0b0648fe9d0';
   try {
-    const res = await fetch(API + "/manga/${SOLO_LEVELING_ID}?includes[]=cover_art");
+    const res = await fetch(API + "/manga/" + SOLO_LEVELING_ID + "?includes[]=cover_art");
     const data = await res.json();
     const m = data.data;
     if(!m) return;
