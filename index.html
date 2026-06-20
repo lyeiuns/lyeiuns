@@ -1903,7 +1903,7 @@ async function loadBanner() {
   try {
     const ctrl = new AbortController();
     setTimeout(()=>ctrl.abort(),8000);
-    const res = await fetch(PROXY+encodeURIComponent(`${API}/manga?limit=6&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe`),{signal:ctrl.signal});
+    const res = await fetch(`${API}/manga?limit=6&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe`,{signal:ctrl.signal});
     const data = await res.json();
     S.bannerData = (data.data||[]).filter(m=>getCover(m));
     if(!S.bannerData.length){el.style.display='none';return;}
@@ -1975,7 +1975,7 @@ async function loadPopular() {
       if(S.popularLang) url+=`&originalLanguage[]=${S.popularLang}`;
     }
     S.homeFilters.tags.forEach(id=>{url+=`&includedTags[]=${id}`;});
-    const res=await fetch(PROXY+encodeURIComponent(url));
+    const res=await fetch(url);
     const data=await res.json();
     el.innerHTML=data.data?.length?data.data.map(renderCard).join(''):'<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try different filters</p></div>';
   } catch(e){el.innerHTML='<div class="empty"><p>Failed to load</p></div>';}
@@ -2438,7 +2438,7 @@ async function loadTop10() {
 
   try {
     const url = `${API}/manga?limit=10&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`;
-    const res = await fetch(PROXY+encodeURIComponent(url));
+    const res = await fetch(url);
     const data = await res.json();
     if(!data.data?.length) { el.innerHTML=''; return; }
 
@@ -2594,21 +2594,21 @@ function setSource(src) {
 // ── COMICK SEARCH ────────────────────────────────────────────────────────────
 async function comickSearch(query, limit=24) {
   const url = `${COMICK}/v1.0/search?q=${encodeURIComponent(query)}&limit=${limit}&page=1`;
-  const res = await fetch(PROXY + encodeURIComponent(url));
+  const res = await fetch(url);
   const data = await res.json();
   return (data || []).map(comickToManga);
 }
 
 async function comickPopular(limit=12) {
   const url = `${COMICK}/v1.0/search?sort=follow&limit=${limit}&page=1`;
-  const res = await fetch(PROXY + encodeURIComponent(url));
+  const res = await fetch(url);
   const data = await res.json();
   return (data || []).map(comickToManga);
 }
 
 async function comickRecent(limit=12) {
   const url = `${COMICK}/v1.0/search?sort=uploaded&limit=${limit}&page=1`;
-  const res = await fetch(PROXY + encodeURIComponent(url));
+  const res = await fetch(url);
   const data = await res.json();
   return (data || []).map(comickToManga);
 }
@@ -2652,14 +2652,14 @@ window.getCover = function(m) {
 // ── COMICK DETAIL ─────────────────────────────────────────────────────────────
 async function comickGetDetail(hid) {
   const url = `${COMICK}/comic/${hid}`;
-  const res = await fetch(PROXY + encodeURIComponent(url));
+  const res = await fetch(url);
   const data = await res.json();
   return data;
 }
 
 async function comickGetChapters(hid) {
   const url = `${COMICK}/comic/${hid}/chapters?lang=en&limit=300`;
-  const res = await fetch(PROXY + encodeURIComponent(url));
+  const res = await fetch(url);
   const data = await res.json();
   return (data?.chapters || []).map(ch => ({
     id: 'comick_ch_' + ch.hid,
@@ -2675,7 +2675,7 @@ async function comickGetChapters(hid) {
 
 async function comickGetPages(chHid) {
   const url = `${COMICK}/chapter/${chHid}`;
-  const res = await fetch(PROXY + encodeURIComponent(url));
+  const res = await fetch(url);
   const data = await res.json();
   return (data?.chapter?.md_images || []).map(img =>
     `https://meo.comick.pictures/${img.b2key}`
@@ -2699,7 +2699,7 @@ async function openComickDetail(id) {
     // find manga from cache or re-search
     const slug = id.replace('comick_','');
     const url = `${COMICK}/comic/${slug}`;
-    const res = await fetch(PROXY + encodeURIComponent(url));
+    const res = await fetch(url);
     const raw = await res.json();
     const comic = raw?.comic || raw;
 
@@ -2738,7 +2738,7 @@ async function openComickDetail(id) {
     // load chapters
     const hid = comic.hid || slug;
     const chapUrl = `${COMICK}/comic/${hid}/chapters?lang=en&limit=300&page=1`;
-    const chapRes = await fetch(PROXY + encodeURIComponent(chapUrl));
+    const chapRes = await fetch(url);
     const chapData = await chapRes.json();
     S.currentChapters = (chapData?.chapters || []).reverse().map(ch => ({
       id: 'comick_ch_' + ch.hid,
@@ -2797,7 +2797,7 @@ async function openComickChapter(chapterId, chapterNum, idx) {
   try {
     const hid = chapterId.replace('comick_ch_','');
     const url = `${COMICK}/chapter/${hid}`;
-    const res = await fetch(PROXY + encodeURIComponent(url));
+    const res = await fetch(url);
     const data = await res.json();
     const pages = (data?.chapter?.md_images || []).map(img =>
       `https://meo.comick.pictures/${img.b2key}`
@@ -2859,7 +2859,7 @@ window.doSearch = async function(query) {
       let url = `${API}/manga?limit=${activeSource==='both'?12:24}&title=${encodeURIComponent(query)}&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&order[${sort}]=desc`;
       if(status) url += `&status[]=${status}`;
       url = buildUrl(url, S.searchFilters);
-      const res = await fetch(PROXY+encodeURIComponent(url));
+      const res = await fetch(url);
       const data = await res.json();
       results = [...results, ...(data.data||[])];
     }
@@ -2970,7 +2970,7 @@ async function fetchSuggestions(query) {
   if(query.length < 2) return;
   try {
     const url = `${API}/manga?limit=6&title=${encodeURIComponent(query)}&includes[]=cover_art&contentRating[]=safe`;
-    const res = await fetch(PROXY+encodeURIComponent(url));
+    const res = await fetch(url);
     const data = await res.json();
     if(!data.data?.length) { hideSuggestions(); return; }
     const el = document.getElementById('search-suggestions');
@@ -3188,7 +3188,7 @@ window.doSearch = async function(query) {
     let url = `${API}/manga?limit=24&title=${encodeURIComponent(query)}&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&order[${sort}]=desc`;
     if(status) url += `&status[]=${status}`;
     url = buildUrl(url, S.searchFilters);
-    const res = await fetch(PROXY+encodeURIComponent(url));
+    const res = await fetch(url);
     const data = await res.json();
     el.innerHTML = data.data?.length ? data.data.map(renderCard).join('') : '<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try different filters</p></div>';
   } catch(e) { el.innerHTML='<div class="empty"><p>Search failed</p></div>'; }
