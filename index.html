@@ -19,6 +19,7 @@
   <meta name="apple-mobile-web-app-title" content="LYEIUNS">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 <style>
+
 :root {
   --bg:#07070d; --surface:#0f0f18; --surface2:#16161f; --border:#23232f;
   --accent:#7c3aed; --accent2:#a855f7; --accent-glow:rgba(124,58,237,0.25);
@@ -160,32 +161,11 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 /* READER */
 .reader-header{background:rgba(7,7,13,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 20px;display:flex;align-items:center;gap:16px;}
 .reader-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;opacity:0.85;}
-.reader-images{max-width:760px;margin:0 auto;padding:16px 12px 80px;display:flex;flex-direction:column;gap:2px;overflow-x:hidden;}
+.reader-images{max-width:760px;margin:0 auto;padding:16px 12px 120px;display:flex;flex-direction:column;gap:2px;overflow-x:hidden;}
 .reader-images img{width:100%;max-width:100%;display:block;border-radius:2px;cursor:zoom-in;touch-action:pan-y;}
 .reader-progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:300;transition:width 0.1s;border-radius:0 2px 2px 0;pointer-events:none;}
-.reader-nav-btns{
-  position:fixed;
-  bottom:calc(16px + env(safe-area-inset-bottom));
-  left:50%;transform:translateX(-50%);
-  display:none;
-  gap:0;z-index:200;align-items:center;
-  background:rgba(7,7,13,0.88);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:32px;
-  padding:0;
-  height:44px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.7);
-  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
-  opacity:1;
-  min-width:240px;
-}
-.reader-nav-btns.hidden{
-  transform:translateX(-50%) translateY(80px);
-  opacity:0;
-  pointer-events:none;
-}
-.reader-nav-btn{background:none;border:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;cursor:pointer;padding:0 16px;height:44px;border-radius:32px;transition:all 0.2s;display:flex;align-items:center;gap:4px;}
+.reader-nav-btns{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:200;align-items:center;background:rgba(7,7,13,0.92);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:8px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.6);}
+.reader-nav-btn{background:none;border:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;padding:4px 12px;border-radius:20px;transition:all 0.2s;}
 .reader-nav-btn:hover{background:var(--surface2);color:var(--accent2);}
 .reader-nav-btn:disabled{opacity:0.3;cursor:not-allowed;}
 .reader-ch-info{font-size:11px;color:var(--muted);letter-spacing:1px;min-width:60px;text-align:center;}
@@ -259,14 +239,14 @@ input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:var(--bor
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;}
 
 /* BOTTOM NAV */
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:rgba(7,7,13,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.07);padding:8px 4px calc(8px + env(safe-area-inset-bottom));justify-content:space-around;align-items:center;transition:transform 0.3s ease;}
-.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:6px 12px;border-radius:12px;transition:all 0.2s;font-family:'Inter',sans-serif;font-size:10px;font-weight:500;min-width:52px;position:relative;}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:150;background:rgba(7,7,13,0.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.07);padding:6px 0 calc(6px + env(safe-area-inset-bottom));justify-content:stretch;align-items:center;transition:transform 0.3s ease;}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;padding:4px 0;border-radius:0;transition:all 0.2s;font-family:'Inter',sans-serif;font-size:9px;font-weight:500;flex:1;position:relative;min-width:0;max-width:none;width:0;}
 .bnav-btn.active{color:white;}
 .bnav-btn.active svg{filter:drop-shadow(0 0 6px var(--accent2));}
 .bnav-dot{width:4px;height:4px;border-radius:50%;background:var(--accent2);opacity:0;transform:scale(0);transition:all 0.2s cubic-bezier(0.16,1,0.3,1);position:absolute;bottom:2px;}
 .bnav-btn.active .bnav-dot{opacity:1;transform:scale(1);}
 .bnav-btn:active{transform:scale(0.9);}
-.bnav-settings{background:linear-gradient(135deg,var(--accent2),var(--accent));width:46px;height:46px;border-radius:50%;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--accent-glow);transition:all 0.2s;flex-shrink:0;}
+.bnav-settings{background:linear-gradient(135deg,var(--accent2),var(--accent));width:46px;height:46px;border-radius:50%;border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--accent-glow);transition:all 0.2s;flex:1;flex-shrink:0;max-width:none;}
 .bnav-settings:active{transform:scale(0.9);}
 
 /* SIDE NAV */
@@ -323,8 +303,102 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .intro-hint{margin-top:16px;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;animation:pulse 2s ease-in-out 2s infinite;}
 @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
 #intro.leaving{animation:introLeave 0.9s cubic-bezier(0.76,0,0.24,1) forwards;}
+/* ══ MANGA VOLUME INTRO - SPLIT HALVES ══ */
+.intro-half {
+  position: absolute; left: 0; right: 0; height: 50%;
+  background: #05050a;
+  transition: transform 1.2s cubic-bezier(0.87,0,0.13,1);
+  z-index: 2;
+  pointer-events: none;
+}
+.intro-half-top {
+  top: 0;
+  box-shadow: 0 12px 48px rgba(0,0,0,1);
+}
+.intro-half-bot {
+  bottom: 0;
+  box-shadow: 0 -12px 48px rgba(0,0,0,1);
+}
+.intro-half::after {
+  content: ''; position: absolute; inset: 0;
+  opacity: 0; transition: opacity 0.8s ease; pointer-events: none;
+}
+.intro-half-top::after {
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7) 100%);
+}
+.intro-half-bot::after {
+  background: linear-gradient(to top, transparent 40%, rgba(0,0,0,0.7) 100%);
+}
+#intro.split .intro-half::after { opacity: 1; }
+.intro-spine {
+  position: absolute; left: 0; right: 0;
+  top: 50%; transform: translateY(-50%);
+  height: 1px;
+  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.6) 20%, white 50%, rgba(255,255,255,0.6) 80%, transparent 100%);
+  transform-origin: left center;
+  opacity: 0;
+  animation: drawSpine 1.2s cubic-bezier(0.4,0,0.2,1) 0.5s both;
+  z-index: 3;
+}
+@keyframes drawSpine {
+  0%   { transform: translateY(-50%) scaleX(0); opacity: 0; }
+  5%   { opacity: 1; }
+  100% { transform: translateY(-50%) scaleX(1); opacity: 1; }
+}
+.intro-center {
+  position: absolute; inset: 0; z-index: 4;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+#intro.split .intro-center { opacity: 0; }
+#intro.split .intro-spine { opacity: 0; transition: opacity 0.3s ease; }
+.intro-main-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(58px,15vw,90px);
+  letter-spacing: 14px; color: white;
+  opacity: 0; line-height: 1;
+  animation: logoIn 0.8s cubic-bezier(0.22,1,0.36,1) 2.0s forwards;
+}
+@keyframes logoIn {
+  from { opacity: 0; transform: scale(1.05); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.intro-stamp {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 11px; letter-spacing: 6px;
+  color: #e63946;
+  border: 1.5px solid #e63946;
+  padding: 5px 20px; margin-top: 14px;
+  opacity: 0;
+  animation: stampIn 0.5s cubic-bezier(0.22,1,0.36,1) 3.0s forwards;
+}
+@keyframes stampIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.intro-ep-label {
+  font-size: 9px; letter-spacing: 5px;
+  color: rgba(255,255,255,0.22);
+  margin-top: 18px; opacity: 0;
+  animation: fadeInSlow 0.5s ease 3.8s forwards;
+}
+.intro-skip {
+  position: absolute; bottom: 44px;
+  font-size: 9px; letter-spacing: 3px;
+  color: rgba(255,255,255,0.15);
+  opacity: 0;
+  animation: fadeInSlow 0.6s ease 4.5s forwards;
+  z-index: 5;
+}
+@keyframes fadeInSlow { from{opacity:0} to{opacity:1} }
+#intro.split .intro-half-top { transform: translateY(-100%); }
+#intro.split .intro-half-bot { transform: translateY(100%); }
+#intro.hidden { display: none !important; }
+
 @keyframes introLeave{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-100%);opacity:0}}
-#main-app{opacity:1;}
+#main-app{opacity:1;transition:opacity 0.4s ease;}
 #main-app.visible{opacity:1;}
 
 /* LIGHT THEME */
@@ -419,7 +493,6 @@ nav { padding: 0 14px; height: 52px; }
 /* Better touch targets */
 .back-btn { padding: 10px 18px; min-height: 44px; }
 .read-btn { padding: 12px 28px; min-height: 44px; }
-.bnav-btn { min-height: 44px; }
 .filter-pill { min-height: 36px; }
 .home-tab { min-height: 36px; }
 
@@ -432,7 +505,6 @@ nav { padding: 0 14px; height: 52px; }
 .chapter-date { font-size: 11px; }
 .continue-time { font-size: 11px; }
 .week-time { font-size: 11px; }
-.bnav-btn { font-size: 10px; }
 
 /* Prevent text overflow everywhere */
 .manga-title { word-break: break-word; }
@@ -455,7 +527,6 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 
 /* Very small phones (iPhone SE = 375px) */
 @media(max-width:390px) {
-  .bnav-btn { padding: 6px 6px; min-width: 40px; font-size: 9px; }
   .bnav-settings { width: 40px; height: 40px; }
   .manga-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .banner { height: 180px; }
@@ -559,7 +630,7 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 @keyframes slideInPage{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* PROFILE IN BOTTOM NAV */
-@media(max-width:768px){.bnav-btn{min-width:44px;padding:6px 8px;font-size:9px;}}
+@media(max-width:768px){}
 
 
 /* ── DETAIL PAGE CRUNCHYROLL STYLE ── */
@@ -848,396 +919,110 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 .reader-source-tag.comick { background:rgba(245,158,11,0.2);color:#f59e0b; }
 
 
-/* ══ JAPANESE MAGAZINE AESTHETIC ══ */
-:root {
-  --bg: #0a0806;
-  --surface: #12100e;
-  --surface2: #1a1714;
-  --border: rgba(255,255,255,0.08);
-  --text: #f0ebe3;
-  --muted: #8a8178;
-  --manga-red: #e63946;
-}
-body { background-color: var(--bg) !important; }
-body::before {
-  content: '';
-  position: fixed; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(to right, var(--manga-red), #ff6b6b, var(--accent));
-  z-index: 9999;
-}
-nav {
-  background: rgba(10,8,6,0.85) !important;
-  backdrop-filter: blur(24px) saturate(1.8) !important;
-  border-bottom: 1px solid rgba(230,57,70,0.12) !important;
-}
-nav::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(124,58,237,0.1) 1px, transparent 1px);
-  background-size: 18px 18px;
+/* ══ READER ══ */
+.reader-header-ui {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top));
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, transparent 100%);
+  transform: translateY(-100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
   pointer-events: none;
 }
-.nav-logo {
-  background: linear-gradient(135deg, #ffffff 0%, #c084fc 40%, #a855f7 70%, #e63946 100%) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  font-size: 24px !important;
-  letter-spacing: 5px !important;
+.reader-header-ui.visible {
+  transform: translateY(0);
+  pointer-events: all;
 }
-.bottom-nav {
-  background: rgba(10,8,6,0.88) !important;
-  backdrop-filter: blur(28px) saturate(2) !important;
-  border-top: none !important;
-  box-shadow: 0 -1px 0 rgba(255,255,255,0.05), 0 -4px 30px rgba(0,0,0,0.4) !important;
-}
-.bottom-nav::before {
-  content: '';
-  position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
-  background: linear-gradient(to right, transparent, rgba(230,57,70,0.5), rgba(124,58,237,0.6), rgba(230,57,70,0.5), transparent);
-}
-.bnav-btn.active { color: var(--accent2) !important; transform: scale(1.1) !important; }
-.bnav-settings {
-  background: linear-gradient(135deg, #a855f7, #7c3aed, #e63946) !important;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.5) !important;
-}
-.section-title {
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 8px !important;
-  padding-bottom: 8px !important;
-  position: relative !important;
-}
-.section-title::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0;
-  width: 36px; height: 2px;
-  background: var(--manga-red);
-}
-.jp-sub {
-  font-size: 9px;
-  color: var(--manga-red);
-  letter-spacing: 2px;
-  opacity: 0.7;
-}
-.manga-badge {
-  background: var(--manga-red) !important;
-  border-radius: 0 !important;
-  font-size: 8px !important;
-  letter-spacing: 1px !important;
-}
-.chapter-num { color: var(--manga-red) !important; }
-.chapter-item.read .chapter-num { color: var(--muted) !important; }
-.manga-card:hover .manga-cover {
-  box-shadow: 0 8px 28px rgba(230,57,70,0.3), 0 0 0 1px rgba(230,57,70,0.2) !important;
-}
-/* BOTTOM NAV PILL */
-.bnav-pill {
-  position: absolute; top: 6px;
-  height: calc(100% - 20px);
-  background: rgba(230,57,70,0.12);
-  border: 1px solid rgba(230,57,70,0.2);
-  border-radius: 12px;
-  pointer-events: none; z-index: 0;
-  transition: left 0.4s cubic-bezier(0.34,1.2,0.64,1), width 0.4s cubic-bezier(0.34,1.2,0.64,1);
-}
-/* CHIBI ANIMATIONS */
-@keyframes chibiBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-@keyframes chibiFloat { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-6px) rotate(2deg)} }
-@keyframes chibiSleep { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
-.chibi-float { animation: chibiFloat 3s ease-in-out infinite; }
-.chibi-bounce { animation: chibiBounce 2s ease-in-out infinite; }
-.chibi-sleep { animation: chibiSleep 2.5s ease-in-out infinite; }
-.chibi-empty {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 40px 20px; gap: 12px; text-align: center;
-}
-.chibi-empty h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; margin: 0; }
-.chibi-empty p { font-size: 13px; color: var(--muted); max-width: 220px; margin: 0; }
-/* READ BTN */
-.read-btn {
-  background: var(--manga-red) !important;
-  border-radius: 0 !important;
-  letter-spacing: 3px !important;
-  font-family: 'Bebas Neue', sans-serif !important;
-  font-size: 16px !important;
-  box-shadow: 3px 3px 0 rgba(230,57,70,0.3) !important;
-}
-
-
-/* ══ MANGA VOLUME OPENING INTRO ══ */
-#intro {
-  background: #000 !important;
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 9999 !important;
-  overflow: hidden !important;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-}
-/* Paper grain texture */
-#intro::before {
-  content: '';
-  position: absolute; inset: 0; z-index: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
-  background-size: 200px; pointer-events: none;
-}
-
-/* ── HALVES ── */
-.intro-half {
-  position: absolute; left: 0; right: 0; height: 50%;
-  background: #000;
-  transition: transform 1.2s cubic-bezier(0.87, 0, 0.13, 1);
-  z-index: 2;
-}
-.intro-half-top {
-  top: 0;
-  box-shadow: 0 12px 48px rgba(0,0,0,1), 0 2px 0 rgba(255,255,255,0.03);
-}
-.intro-half-bot {
-  bottom: 0;
-  box-shadow: 0 -12px 48px rgba(0,0,0,1), 0 -2px 0 rgba(255,255,255,0.03);
-}
-/* Paper texture per half */
-.intro-half::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 200px;
-}
-/* Vignette that darkens during split */
-.intro-half::after {
-  content: '';
-  position: absolute; inset: 0;
-  opacity: 0;
-  transition: opacity 0.8s ease;
-  pointer-events: none;
-}
-.intro-half-top::after {
-  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7) 100%);
-}
-.intro-half-bot::after {
-  background: linear-gradient(to top, transparent 40%, rgba(0,0,0,0.7) 100%);
-}
-#intro.split .intro-half::after { opacity: 1; }
-
-/* ── SPINE LINE ── */
-.intro-spine {
-  position: absolute; left: 0; right: 0;
-  top: 50%; transform: translateY(-50%);
-  height: 1px;
-  background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.6) 20%, white 50%, rgba(255,255,255,0.6) 80%, transparent 100%);
-  transform-origin: left center;
-  opacity: 0;
-  animation: drawSpine 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s both;
-  z-index: 3;
-}
-@keyframes drawSpine {
-  0%   { transform: translateY(-50%) scaleX(0); opacity: 0; }
-  5%   { opacity: 1; }
-  100% { transform: translateY(-50%) scaleX(1); opacity: 1; }
-}
-
-/* ── LOGO CENTER CONTENT ── */
-.intro-center {
-  position: absolute; inset: 0; z-index: 4;
+.reader-images {
+  max-width: 800px; margin: 0 auto;
+  padding: 0 0 120px;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
+  gap: 0; overflow-x: hidden;
 }
-#intro.split .intro-center { opacity: 0; }
-#intro.split .intro-spine   { opacity: 0; transition: opacity 0.3s ease; }
-
-.intro-main-logo {
+.reader-images img {
+  width: 100%; max-width: 100%; display: block;
+  touch-action: pan-y;
+}
+.reader-images.long-strip { flex-direction: column; }
+.reader-nav-btns {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%) translateY(80px);
+  display: flex; gap: 0; z-index: 300;
+  align-items: center;
+  background: rgba(7,7,13,0.92);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 32px; padding: 0; height: 48px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.8);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
+  opacity: 0; pointer-events: none; min-width: 260px;
+}
+.reader-nav-btns.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1; pointer-events: all;
+}
+.reader-nav-btn {
+  background: none; border: none; color: white;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(58px, 15vw, 90px);
-  letter-spacing: 14px;
-  color: white;
-  opacity: 0;
-  line-height: 1;
-  animation: logoIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 2.0s forwards;
+  font-size: 14px; letter-spacing: 1px;
+  cursor: pointer; padding: 0 20px; height: 48px;
+  display: flex; align-items: center; gap: 6px;
+  opacity: 0.8; transition: opacity 0.2s;
 }
-@keyframes logoIn {
-  from { opacity: 0; transform: scale(1.05); }
-  to   { opacity: 1; transform: scale(1); }
+.reader-nav-btn:active { opacity: 1; }
+.reader-nav-btn:disabled { opacity: 0.25; pointer-events: none; }
+.reader-ch-info {
+  font-family: 'Bebas Neue', sans-serif; font-size: 12px;
+  letter-spacing: 2px; color: rgba(255,255,255,0.5);
+  padding: 0 16px; height: 48px; display: flex;
+  align-items: center; flex: 1; justify-content: center;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  border-right: 1px solid rgba(255,255,255,0.08);
 }
+.reader-tap-zone { position: fixed; top: 0; bottom: 0; z-index: 100; width: 30%; }
+.reader-tap-left { left: 0; }
+.reader-tap-right { right: 0; }
+.rs-mode-btn.active {
+  border-color: var(--manga-red) !important;
+  background: rgba(230,57,70,0.12) !important;
+  color: var(--manga-red) !important;
+}
+/* MAGAZINE AESTHETIC ADDITIONS */
+.pop-period-btn.active { background: var(--manga-red) !important; color: white !important; border-color: var(--manga-red) !important; }
+.meta-pill { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:var(--muted); font-size:11px; padding:4px 10px; display:inline-flex; align-items:center; gap:4px; }
+.meta-pill.green { border-color:rgba(230,57,70,0.3); color:var(--manga-red); }
+.manga-card:active .manga-cover { box-shadow:0 8px 24px rgba(230,57,70,0.35),0 0 0 1px rgba(230,57,70,0.2); transform:translateY(-2px); transition:all 0.2s; }
+#list-pick-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:500; align-items:flex-end; }
+#list-pick-modal.open { display:flex !important; }
 
-.intro-stamp {
-  font-family: 'Noto Serif JP', serif;
-  font-size: 11px; letter-spacing: 6px;
-  color: var(--manga-red, #e63946);
-  border: 1.5px solid var(--manga-red, #e63946);
-  padding: 5px 20px;
-  margin-top: 14px;
-  opacity: 0;
-  animation: stampIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 3.0s forwards;
-}
-@keyframes stampIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
 
-.intro-ep-label {
-  font-size: 9px; letter-spacing: 5px;
-  color: rgba(255,255,255,0.22);
-  margin-top: 18px;
-  opacity: 0;
-  animation: fadeInSlow 0.5s ease 3.8s forwards;
-}
-
-.intro-skip {
-  position: absolute; bottom: 44px;
-  font-size: 9px; letter-spacing: 3px;
-  color: rgba(255,255,255,0.15);
-  opacity: 0;
-  animation: fadeInSlow 0.6s ease 4.5s forwards;
-  z-index: 5;
-}
-
-@keyframes fadeInSlow {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── SPLIT STATE ── */
-#intro.split .intro-half-top { transform: translateY(-100%); }
-#intro.split .intro-half-bot { transform: translateY(100%); }
-#intro.hidden { display: none !important; }
-
-/* ══ JAPANESE MAGAZINE TAB BAR ══ */
-.bnav-btn {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 2px !important;
-  padding: 6px 4px !important;
-  position: relative;
-}
+/* ── BOTTOM NAV JP LABELS ── */
 .bnav-label-en {
-  font-size: 9px !important;
-  letter-spacing: 0.5px;
+  font-size: 9px;
+  letter-spacing: 0.2px;
   line-height: 1;
+  white-space: nowrap;
+  color: inherit;
 }
 .bnav-label-jp {
-  font-family: 'Noto Serif JP', serif !important;
-  font-size: 8px !important;
-  letter-spacing: 1px;
+  font-family: 'Noto Serif JP', serif;
+  font-size: 7px;
+  letter-spacing: 0.5px;
   color: var(--muted);
   line-height: 1;
+  white-space: nowrap;
 }
 .bnav-btn.active .bnav-label-jp { color: var(--accent2); }
+.bnav-btn.active { color: white; }
 .bnav-btn.active::after {
   content: '';
   position: absolute;
-  bottom: 2px; left: 50%; transform: translateX(-50%);
+  bottom: 0; left: 50%; transform: translateX(-50%);
   width: 16px; height: 2px;
   background: var(--manga-red);
-  border-radius: 0;
-  animation: tabLineIn 0.25s ease;
-}
-@keyframes tabLineIn {
-  from { width: 0; opacity: 0; }
-  to   { width: 16px; opacity: 1; }
-}
-/* Hide old dot */
-.bnav-dot { display: none !important; }
-
-/* FAB jp label */
-.bnav-settings-wrap {
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-}
-.bnav-settings-jp {
-  font-family: 'Noto Serif JP', serif;
-  font-size: 7px; letter-spacing: 1px; color: rgba(255,255,255,0.4);
 }
 
-/* ══ MAGAZINE SECTION HEADERS ══ */
-.section-num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 11px; color: var(--manga-red);
-  letter-spacing: 1px; opacity: 0.9;
-  flex-shrink: 0;
-}
-
-#list-pick-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; align-items: flex-end; }
-#list-pick-modal.open { display: flex !important; }
-.pop-period-btn.active { background: var(--manga-red) !important; color: white !important; border-color: var(--manga-red) !important; }
-
-/* ── READER IMPROVEMENTS ── */
-.reader-progress-bar {
-  position: fixed; top: 0; left: 0; right: 0; height: 3px;
-  background: rgba(255,255,255,0.08); z-index: 200;
-}
-.reader-progress-fill {
-  height: 100%; width: 0%;
-  background: linear-gradient(to right, var(--manga-red), var(--accent));
-  transition: width 0.2s;
-}
-.reader-page-counter {
-  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-  color: white; font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px; letter-spacing: 2px;
-  padding: 5px 16px; z-index: 150;
-  border: 1px solid rgba(255,255,255,0.1);
-  pointer-events: none; opacity: 0;
-  transition: opacity 0.3s;
-}
-.reader-page-counter.show { opacity: 1; }
-.reader-tap-zone {
-  position: fixed; top: 0; bottom: 0; z-index: 100;
-  width: 30%;
-}
-.reader-tap-left { left: 0; }
-.reader-tap-right { right: 0; }
-.reader-mode-btn {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: var(--muted); padding: 5px 10px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 11px; letter-spacing: 1px;
-  cursor: pointer; transition: all 0.2s;
-}
-.reader-mode-btn.active { background: var(--manga-red); border-color: var(--manga-red); color: white; }
-/* Long strip mode */
-#reader-images.long-strip { display: flex; flex-direction: column; align-items: center; }
-#reader-images.long-strip img { width: 100%; max-width: 800px; height: auto; display: block; }
-
-
-/* ── VISUAL POLISH ── */
-.manga-card:active .manga-cover,
-.manga-card:hover .manga-cover {
-  box-shadow: 0 8px 24px rgba(230,57,70,0.35), 0 0 0 1px rgba(230,57,70,0.2);
-  transform: translateY(-2px);
-  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-}
-.manga-cover { transition: all 0.2s; }
-.banner { height: 260px !important; }
-.banner-slide::after {
-  background: linear-gradient(to top, rgba(10,8,6,1) 0%, rgba(10,8,6,0.75) 40%, rgba(10,8,6,0.15) 80%, transparent 100%) !important;
-}
-.section-title {
-  font-size: 22px !important;
-}
-.section-title::after {
-  height: 3px !important;
-  width: 44px !important;
-}
-/* Detail meta pills */
-.meta-pill {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: var(--muted);
-  font-size: 11px; padding: 4px 10px;
-  display: inline-flex; align-items: center; gap: 4px;
-}
-.meta-pill.green { border-color: rgba(230,57,70,0.3); color: var(--manga-red); }
-
-.rs-mode-btn.active { border-color: var(--manga-red) !important; background: rgba(230,57,70,0.1) !important; }
-.rs-mode-btn.active div:first-child { color: var(--manga-red) !important; }
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -1585,12 +1370,34 @@ nav::before {
 
 <!-- READER -->
 <div id="page-reader" class="page">
-  <div class="reader-header">
-    <button class="back-btn" onclick="goBack()">← Back</button>
-    <div id="reader-title" class="reader-title"></div>
-    <button onclick="openReaderSettings()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;padding:4px 8px;margin-left:auto">⚙</button>
+  <!-- Progress bar top -->
+  <div id="reader-prog-bar" style="position:fixed;top:0;left:0;right:0;height:2px;z-index:999;pointer-events:none">
+    <div id="reader-prog-fill" style="height:100%;width:0%;background:linear-gradient(to right,var(--manga-red),var(--accent));transition:width 0.15s"></div>
   </div>
-  <div id="reader-images" class="reader-images"></div>
+
+  <!-- Header — hidden by default, shown on double tap -->
+  <div id="reader-header-ui" class="reader-header-ui">
+    <button class="back-btn" onclick="goBack()" style="background:rgba(0,0,0,0.5);border:none;color:white;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:6px;border-radius:20px">← BACK</button>
+    <div id="reader-title" style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:white;text-align:center;flex:1;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <button onclick="openReaderSettings()" style="background:rgba(0,0,0,0.5);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">⚙</button>
+  </div>
+
+  <!-- Images -->
+  <div id="reader-images" class="reader-images" onclick="readerHandleTap(event)"></div>
+
+  <!-- Bottom nav — hidden by default -->
+  <div id="reader-nav" class="reader-nav-btns">
+    <button class="reader-nav-btn" id="prev-btn" onclick="navChapter(-1)">← PREV</button>
+    <div class="reader-ch-info" id="reader-ch-info">CH 1</div>
+    <button class="reader-nav-btn" id="next-btn" onclick="navChapter(1)">NEXT →</button>
+  </div>
+
+  <!-- % progress indicator -->
+  <div id="reader-pct" style="position:fixed;bottom:calc(60px + env(safe-area-inset-bottom));right:16px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.5);padding:3px 10px;border-radius:12px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:150">0%</div>
+
+  <!-- Tap zones for left/right page nav -->
+  <div class="reader-tap-zone reader-tap-left" id="tap-left" onclick="readerTapLeft()"></div>
+  <div class="reader-tap-zone reader-tap-right" id="tap-right" onclick="readerTapRight()"></div>
 </div>
 
 
@@ -1751,58 +1558,58 @@ nav::before {
 </div>
 
 
+
 <!-- READER SETTINGS PANEL -->
-<div id="reader-settings-panel" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeReaderSettings()">
-  <div style="background:#0f0d0b;border:1px solid rgba(255,255,255,0.1);width:100%;max-width:340px;padding:24px">
+<div id="reader-settings-panel" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeReaderSettings()">
+  <div style="background:#0f0d0b;border:1px solid rgba(230,57,70,0.2);width:100%;max-width:340px;padding:0;overflow:hidden">
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:white">READER SETTINGS</div>
-      <button onclick="closeReaderSettings()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;padding:4px">✕</button>
+    <div style="background:rgba(230,57,70,0.08);border-bottom:1px solid rgba(230,57,70,0.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;color:white">READER SETTINGS</div>
+      <button onclick="closeReaderSettings()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:20px;cursor:pointer;line-height:1">✕</button>
     </div>
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
 
-    <!-- Nav Mode -->
-    <div style="margin-bottom:20px">
-      <div style="font-size:10px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px;font-family:'Bebas Neue',sans-serif">TOOLBAR TRIGGER</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="rs-mode-btn" data-mode="double" onclick="setReaderNavMode('double')"
-          style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;text-align:left">
-          <span style="font-size:20px">👆👆</span>
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">DOUBLE TAP</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">Tap twice fast to show/hide</div>
-          </div>
-        </button>
-        <button class="rs-mode-btn" data-mode="single" onclick="setReaderNavMode('single')"
-          style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;text-align:left">
-          <span style="font-size:20px">👆</span>
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">SINGLE TAP</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">One tap anywhere to toggle</div>
-          </div>
-        </button>
-        <button class="rs-mode-btn" data-mode="always" onclick="setReaderNavMode('always')"
-          style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;text-align:left">
-          <span style="font-size:20px">📌</span>
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">ALWAYS VISIBLE</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">Toolbar never hides</div>
-          </div>
-        </button>
+      <!-- Long Strip -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">☰ LONG STRIP</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Continuous scroll — great for manhwa</div>
+        </div>
+        <div class="toggle" id="rs-strip-toggle" onclick="readerToggleLongStrip()"></div>
       </div>
-    </div>
 
-    <!-- Performance Mode -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">⚡ PERFORMANCE MODE</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Lower quality, faster loading</div>
+      <!-- Night Mode -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">🌙 NIGHT MODE</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Dim overlay for dark rooms</div>
+        </div>
+        <div class="toggle" id="rs-night-toggle" onclick="readerToggleNight()"></div>
       </div>
-      <div class="toggle" id="rs-perf-toggle" onclick="toggleReaderPerf()"></div>
-    </div>
 
-    <!-- How to access -->
-    <div style="margin-top:16px;padding:10px 16px;background:rgba(230,57,70,0.08);border-left:2px solid var(--manga-red)">
-      <div style="font-size:11px;color:var(--muted)">Access settings anytime while reading by tapping the <strong style="color:white">⚙</strong> button in the reader header</div>
+      <!-- Performance -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">⚡ PERFORMANCE</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Lower quality, faster loading</div>
+        </div>
+        <div class="toggle" id="rs-perf-toggle" onclick="toggleReaderPerf()"></div>
+      </div>
+
+      <!-- Tap Mode -->
+      <div style="padding:12px 0">
+        <div style="font-size:10px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px;font-family:'Bebas Neue',sans-serif">SHOW CONTROLS</div>
+        <div style="display:flex;gap:8px">
+          <button class="rs-mode-btn" data-mode="double" onclick="setReaderNavMode('double')" style="flex:1;padding:10px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--muted)">👆👆<br>DOUBLE TAP</button>
+          <button class="rs-mode-btn" data-mode="single" onclick="setReaderNavMode('single')" style="flex:1;padding:10px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--muted)">👆<br>SINGLE TAP</button>
+          <button class="rs-mode-btn" data-mode="always" onclick="setReaderNavMode('always')" style="flex:1;padding:10px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--muted)">📌<br>ALWAYS</button>
+        </div>
+      </div>
+
+      <!-- Triple tap hint -->
+      <div style="padding:10px 12px;background:rgba(230,57,70,0.06);border-left:2px solid var(--manga-red)">
+        <div style="font-size:11px;color:var(--muted)">💡 <strong style="color:white">Triple tap</strong> anywhere while reading to open this panel</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1817,7 +1624,9 @@ nav::before {
   <div class="bnav-pill" id="bnav-pill"></div>
   <button class="bnav-btn active" id="bnav-home" onclick="navigate('home')">
     <svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    Home<div class="bnav-dot"></div>
+    <span class="bnav-label-en">Home</span>
+    <span class="bnav-label-jp">ホーム</span>
+    <div class="bnav-dot"></div>
   </button>
   <button class="bnav-btn" id="bnav-search" onclick="navigate('search')">
     <svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2053,19 +1862,13 @@ function showPage(name) {
   const bNav = document.getElementById('bottom-nav');
   if(rNav) {
     if(!inReader) {
-      rNav.style.display = 'none';
-      rNav.classList.add('hidden');
-    } else {
-      // In reader: show based on mode
-      if(readerNavMode === 'always') {
-        rNav.style.display = 'flex';
-        rNav.classList.remove('hidden');
-      } else {
-        rNav.style.display = 'flex';
-        rNav.classList.add('hidden'); // hidden but flex so transitions work
-      }
+      rNav.classList.remove('visible');
+    } else if(readerNavMode === 'always') {
+      readerShowControls();
     }
   }
+  var rHdr = document.getElementById('reader-header-ui');
+  if(rHdr && !inReader) rHdr.classList.remove('visible');
   if(rProg) rProg.style.display = inReader?'block':'none';
   if(sNav) { sNav.style.opacity=inReader?'0':'1'; sNav.style.pointerEvents=inReader?'none':'all'; }
   if(bNav) bNav.style.transform = inReader?'translateY(100%)':'translateY(0)';
@@ -2919,24 +2722,30 @@ function setSource(src) {
 
 // ── COMICK SEARCH ────────────────────────────────────────────────────────────
 async function comickSearch(query, limit=24) {
+  try {
   const url = `${COMICK}/v1.0/search?q=${encodeURIComponent(query)}&limit=${limit}&page=1`;
   const res = await fetch(url);
   const data = await res.json();
   return (data || []).map(comickToManga);
+  } catch(e) { console.warn("comickSearch error:", e); return []; }
 }
 
 async function comickPopular(limit=12) {
+  try {
   const url = `${COMICK}/v1.0/search?sort=follow&limit=${limit}&page=1`;
   const res = await fetch(url);
   const data = await res.json();
   return (data || []).map(comickToManga);
+  } catch(e) { console.warn("comickPopular error:", e); return []; }
 }
 
 async function comickRecent(limit=12) {
+  try {
   const url = `${COMICK}/v1.0/search?sort=uploaded&limit=${limit}&page=1`;
   const res = await fetch(url);
   const data = await res.json();
   return (data || []).map(comickToManga);
+  } catch(e) { console.warn("comickRecent error:", e); return []; }
 }
 
 // Convert Comick format to our MangaDex-like format
@@ -2977,10 +2786,12 @@ window.getCover = function(m) {
 
 // ── COMICK DETAIL ─────────────────────────────────────────────────────────────
 async function comickGetDetail(hid) {
+  try {
   const url = `${COMICK}/comic/${hid}`;
   const res = await fetch(url);
   const data = await res.json();
   return data;
+  } catch(e) { console.warn("comickGetDetail error:", e); return []; }
 }
 
 async function comickGetChapters(hid) {
@@ -3000,12 +2811,14 @@ async function comickGetChapters(hid) {
 }
 
 async function comickGetPages(chHid) {
+  try {
   const url = `${COMICK}/chapter/${chHid}`;
   const res = await fetch(url);
   const data = await res.json();
   return (data?.chapter?.md_images || []).map(img =>
     `https://meo.comick.pictures/${img.b2key}`
   );
+  } catch(e) { console.warn("comickGetPages error:", e); return []; }
 }
 
 // ── PATCH openDetail for dual source ─────────────────────────────────────────
@@ -3757,10 +3570,12 @@ function getChibiEmpty(type, title, subtitle) {
 
 // ══ MANGA INTRO ══
 (function() {
-  var visited = load('lyeiuns-visited', false);
+  var visited = false; save('lyeiuns-visited', false); // reset for this deploy
   if(visited) {
     var intro = document.getElementById('intro');
     if(intro) intro.classList.add('hidden');
+    var app = document.getElementById('main-app');
+    if(app) app.classList.add('visible');
     return;
   }
   save('lyeiuns-visited', true);
@@ -3768,7 +3583,10 @@ function getChibiEmpty(type, title, subtitle) {
   setTimeout(function() {
     var intro = document.getElementById('intro');
     if(intro) intro.classList.add('split');
-    // Hide after 1.3s split animation completes
+    // Show main app as split begins
+    var app = document.getElementById('main-app');
+    if(app) app.classList.add('visible');
+    // Hide intro after split completes
     setTimeout(function() {
       var i2 = document.getElementById('intro');
       if(i2) i2.classList.add('hidden');
@@ -3778,18 +3596,20 @@ function getChibiEmpty(type, title, subtitle) {
 
 function skipIntro() {
   var intro = document.getElementById('intro');
-  if(!intro || intro.classList.contains('hidden')) return;
+  if(!intro) return;
+  // Show main app immediately
+  var app = document.getElementById('main-app');
+  if(app) app.classList.add('visible');
   intro.classList.add('split');
   setTimeout(function() {
+    intro.style.display = 'none';
     intro.classList.add('hidden');
   }, 700);
 }
 
 
 // ── READER TAP NAVIGATION ──
-let readerImgIndex = 0;
-let longStripMode = false;
-let pageCountTimer = null;
+// reader vars moved to unified system
 
 function readerTapLeft() {
   const imgs = document.querySelectorAll('#reader-images img');
@@ -3829,108 +3649,165 @@ function toggleLongStrip() {
 }
 
 // Reader scroll progress
-window.addEventListener('scroll', function() {
-  const fill = document.getElementById('reader-prog-fill');
-  if(!fill) return;
-  const pct = Math.min(100, (window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight)) * 100);
-  fill.style.width = pct + '%';
-
-  // Update page counter based on scroll
-  if(longStripMode) return;
-  const imgs = document.querySelectorAll('#reader-images img');
-  if(!imgs.length) return;
-  for(let i = imgs.length - 1; i >= 0; i--) {
-    if(imgs[i].getBoundingClientRect().top <= window.innerHeight / 2) {
-      if(readerImgIndex !== i) { readerImgIndex = i; showPageCount(i + 1, imgs.length); }
-      break;
-    }
-  }
-});
+// old scroll listener removed
 
 
-// ── READER TOOLBAR BEHAVIOR ──
-var readerLastTap = 0;
+// ══ READER INTERACTION SYSTEM ══
 var readerNavMode = 'double'; // 'double' | 'single' | 'always'
+var readerLongStrip = false;
+var readerNightOn = false;
+var readerTapCount = 0;
+var readerTapTimer = null;
+var readerHideTimer = null;
+var readerImgIndex = 0;
+var readerPctTimer = null;
 
-function readerShowNav() {
-  var nav = document.getElementById('reader-nav');
-  if(!nav) return;
-  nav.classList.remove('hidden');
-  nav.style.display = 'flex';
+// Show/hide header + nav together
+function readerShowControls() {
+  var _rh = document.getElementById('reader-header-ui'); if(_rh) _rh.classList.add('visible');
+  var _rn = document.getElementById('reader-nav'); if(_rn) _rn.classList.add('visible');
+  clearTimeout(readerHideTimer);
+  if(readerNavMode !== 'always') {
+    readerHideTimer = setTimeout(readerHideControls, 4000);
+  }
 }
 
-function readerHideNav() {
-  var nav = document.getElementById('reader-nav');
-  if(!nav) return;
-  nav.classList.add('hidden');
+function readerHideControls() {
+  if(readerNavMode === 'always') return;
+  var _rh2 = document.getElementById('reader-header-ui'); if(_rh2) _rh2.classList.remove('visible');
+  var _rn2 = document.getElementById('reader-nav'); if(_rn2) _rn2.classList.remove('visible');
 }
 
-function readerToggleNav() {
-  var nav = document.getElementById('reader-nav');
-  if(!nav) return;
-  if(nav.classList.contains('hidden')) readerShowNav();
-  else readerHideNav();
+function readerToggleControls() {
+  var hdr = document.getElementById('reader-header-ui');
+  if(hdr && hdr.classList.contains('visible')) readerHideControls();
+  else readerShowControls();
 }
 
+// Central tap handler — counts taps
+function readerHandleTap(e) {
+  // Ignore taps on nav/settings/header
+  if(e.target.closest && (
+    e.target.closest('#reader-nav') ||
+    e.target.closest('#reader-header-ui') ||
+    e.target.closest('#reader-settings-panel') ||
+    e.target.closest('.reader-tap-zone')
+  )) return;
+
+  readerTapCount++;
+  clearTimeout(readerTapTimer);
+
+  readerTapTimer = setTimeout(function() {
+    var count = readerTapCount;
+    readerTapCount = 0;
+
+    if(count === 1 && readerNavMode === 'single') {
+      readerToggleControls();
+    } else if(count === 2) {
+      // Double tap — show/hide controls
+      if(readerNavMode === 'double' || readerNavMode === 'always') {
+        readerToggleControls();
+      }
+      // Also do pulse zoom on tapped image
+      var img = (e.target && e.target.closest) ? e.target.closest('img') : null;
+      if(img) {
+        img.style.transition = 'transform 0.15s ease';
+        img.style.transform = 'scale(1.05)';
+        setTimeout(function(){ img.style.transform = 'scale(1)'; }, 150);
+        setTimeout(function(){ img.style.transition = ''; }, 320);
+      }
+    } else if(count >= 3) {
+      // Triple tap — open settings
+      openReaderSettings();
+    }
+  }, 280);
+}
+
+// Page tap zones
+function readerTapLeft() {
+  var imgs = document.querySelectorAll('#reader-images img');
+  if(!imgs || !imgs.length || readerLongStrip) return;
+  readerImgIndex = Math.min(imgs.length - 1, readerImgIndex + 1);
+  imgs[readerImgIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function readerTapRight() {
+  var imgs = document.querySelectorAll('#reader-images img');
+  if(!imgs || !imgs.length || readerLongStrip) return;
+  readerImgIndex = Math.max(0, readerImgIndex - 1);
+  imgs[readerImgIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Settings functions
 function openReaderSettings() {
   var panel = document.getElementById('reader-settings-panel');
-  if(panel) {
-    panel.style.display = 'flex';
-    // Update toggles to reflect current settings
-    document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
-      b.classList.toggle('active', b.dataset.mode === readerNavMode);
-    });
-    var perfToggle = document.getElementById('rs-perf-toggle');
-    if(perfToggle) perfToggle.classList.toggle('on', !!window.readerPerfMode);
-  }
+  if(!panel) return;
+  panel.style.display = 'flex';
+  // Sync toggle states
+  var st = document.getElementById('rs-strip-toggle');
+  var nt = document.getElementById('rs-night-toggle');
+  var pt = document.getElementById('rs-perf-toggle');
+  if(st) st.classList.toggle('on', readerLongStrip);
+  if(nt) nt.classList.toggle('on', readerNightOn);
+  if(pt) pt.classList.toggle('on', !!window.readerPerfMode);
+  document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.mode === readerNavMode);
+  });
 }
-
 function closeReaderSettings() {
   var panel = document.getElementById('reader-settings-panel');
   if(panel) panel.style.display = 'none';
 }
-
 function setReaderNavMode(mode) {
   readerNavMode = mode;
   document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
-  if(mode === 'always') readerShowNav();
-  else readerHideNav();
+  if(mode === 'always') readerShowControls();
+  else readerHideControls();
   closeReaderSettings();
-  toast('Nav: ' + (mode === 'double' ? 'Double tap' : mode === 'single' ? 'Single tap' : 'Always visible'));
 }
-
+function readerToggleLongStrip() {
+  readerLongStrip = !readerLongStrip;
+  var imgs = document.getElementById('reader-images');
+  if(imgs) imgs.classList.toggle('long-strip', readerLongStrip);
+  var t = document.getElementById('rs-strip-toggle');
+  if(t) t.classList.toggle('on', readerLongStrip);
+  var tapL = document.getElementById('tap-left');
+  var tapR = document.getElementById('tap-right');
+  if(tapL) tapL.style.display = readerLongStrip ? 'none' : '';
+  if(tapR) tapR.style.display = readerLongStrip ? 'none' : '';
+}
+function readerToggleNight() {
+  readerNightOn = !readerNightOn;
+  var overlay = document.getElementById('night-overlay');
+  if(overlay) overlay.style.opacity = readerNightOn ? '0.35' : '0';
+  var t = document.getElementById('rs-night-toggle');
+  if(t) t.classList.toggle('on', readerNightOn);
+}
 function toggleReaderPerf() {
   window.readerPerfMode = !window.readerPerfMode;
   var t = document.getElementById('rs-perf-toggle');
   if(t) t.classList.toggle('on', window.readerPerfMode);
 }
+function toggleLongStrip() { readerToggleLongStrip(); }
+function toggleNight() { readerToggleNight(); }
 
-// Touch handler for reader nav modes
-var readerDoubleTapTimer = null;
-document.addEventListener('touchend', function(e) {
+// Scroll progress
+window.addEventListener('scroll', function() {
   var page = document.querySelector('.page.active');
   if(!page || page.id !== 'page-reader') return;
-  // Ignore taps on toolbar, tap zones, settings
-  if(e.target.closest('#reader-nav') || e.target.closest('#reader-settings-panel') ||
-     e.target.closest('.reader-tap-zone') || e.target.closest('.reader-header')) return;
-
-  var now = Date.now();
-  if(now - readerLastTap < 280) {
-    // Double tap
-    clearTimeout(readerDoubleTapTimer);
-    if(readerNavMode === 'double') readerToggleNav();
-    else if(readerNavMode === 'always') openReaderSettings();
-    readerLastTap = 0;
-  } else {
-    readerLastTap = now;
-    readerDoubleTapTimer = setTimeout(function() {
-      // Single tap
-      if(readerNavMode === 'single') readerToggleNav();
-    }, 290);
+  var fill = document.getElementById('reader-prog-fill');
+  var pct = document.getElementById('reader-pct');
+  var scrollPct = Math.min(100, Math.round((window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight)) * 100));
+  if(fill) fill.style.width = scrollPct + '%';
+  if(pct) {
+    pct.textContent = scrollPct + '%';
+    pct.style.opacity = '1';
+    clearTimeout(readerPctTimer);
+    readerPctTimer = setTimeout(function(){ if(pct) pct.style.opacity = '0'; }, 1500);
   }
 }, { passive: true });
+
 
 // ═══════════════════════════════════════════
 // INIT
