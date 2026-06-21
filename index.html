@@ -2064,42 +2064,52 @@ function esc(s) { return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 // NAVIGATION
 // ═══════════════════════════════════════════
 function showPage(name) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const pg = document.getElementById('page-'+name);
+  // Activate page
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var pg = document.getElementById('page-' + name);
   if(pg) pg.classList.add('active');
-  window.scrollTo(0,0);
+  window.scrollTo(0, 0);
+
+  // Bottom nav active state (ALL 5 tabs)
+  ['home','search','library','profile','lists'].forEach(function(p) {
+    var b = document.getElementById('bnav-' + p);
+    if(b) b.classList.toggle('active', p === name);
+  });
+
+  // Side nav
+  ['home','search','library','profile','lists'].forEach(function(p) {
+    var b = document.getElementById('snav-' + p);
+    if(b) b.classList.toggle('active', p === name);
+  });
+
+  // Bottom nav visibility
+  var bNav = document.getElementById('bottom-nav');
+  var inReader = (name === 'reader');
+  if(bNav) { bNav.style.display = inReader ? 'none' : 'flex'; }
+
+  // Reader-specific UI
+  var rNav = document.getElementById('reader-nav');
+  var rProg = document.getElementById('reader-progress');
+  var sNav = document.getElementById('side-nav');
+  if(rNav) rNav.classList.remove('visible');
+  if(rProg) rProg.style.display = inReader ? 'block' : 'none';
+  if(sNav) { sNav.style.opacity = inReader ? '0' : '1'; sNav.style.pointerEvents = inReader ? 'none' : 'all'; }
+
+  // Reader header
+  var rHdr = document.getElementById('reader-header-ui');
+  if(rHdr) rHdr.classList.remove('visible');
+
+  // Source bar
+  var bar = document.getElementById('source-bar');
+  if(bar) bar.style.display = inReader ? 'none' : 'flex';
+
+  // Page-specific actions
+  if(name === 'lists') renderLists();
+  if(name === 'profile') { setTimeout(function(){ renderProfile(); }, 50); }
+  if(name === 'library') renderLibrary();
+
+  // Nav pill
   updateNavPill(name);
-
-  // nav tabs
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
-    const pages=['home','search','library','lists'];
-    t.classList.toggle('active', pages[i]===name);
-  });
-
-  // side nav
-  ['home','search','library','lists'].forEach(p=>{
-    const b=document.getElementById('snav-'+p);
-    if(b) b.classList.toggle('active',p===name);
-  });
-
-  // bottom nav - ALL tabs including profile
-  ['home','search','library','profile','lists'].forEach(p=>{
-    const b=document.getElementById('bnav-'+p);
-    if(b) b.classList.toggle('active',p===name);
-  });
-
-  // reader UI
-  const inReader = name==='reader';
-  const rNav = document.getElementById('reader-nav');
-  const rProg = document.getElementById('reader-progress');
-  const sNav = document.getElementById('side-nav');
-  const bNav = document.getElementById('bottom-nav');
-  if(rNav) rNav.style.display = inReader?'flex':'none';
-  if(rProg) rProg.style.display = inReader?'block':'none';
-  if(sNav) { sNav.style.opacity=inReader?'0':'1'; sNav.style.pointerEvents=inReader?'none':'all'; }
-  if(bNav) { bNav.style.display = inReader ? 'none' : 'flex'; bNav.style.transform = 'translateY(0)'; }
-
-  if(name==='lists') renderLists();
 }
 
 function navigate(page) {
@@ -3067,15 +3077,7 @@ async function comickGetPages(chHid) {
   );
 }
 
-// ── PATCH openDetail for dual source ─────────────────────────────────────────
-const _origOpenDetail2 = window.openDetail;
-window.openDetail = async function(id) {
-  if(id.startsWith('comick_') && !id.startsWith('comick_ch_')) {
-    await openComickDetail(id);
-    return;
-  }
-  await _origOpenDetail2(id);
-}
+// comick routing moved into final openDetail
 
 async function openComickDetail(id) {
   navigate('detail');
@@ -3298,13 +3300,7 @@ window.loadPopular = async function() {
   } catch(e) { document.getElementById('popular-grid').innerHTML = '<div class="empty"><p>Failed</p></div>'; }
 }
 
-// hide source bar in reader
-const _origShowP2 = window.showPage;
-window.showPage = function(name) {
-  _origShowP2(name);
-  const bar = document.getElementById('source-bar');
-  if(bar) bar.style.display = name === 'reader' ? 'none' : 'flex';
-}
+// source-bar handling moved into showPage
 
 // ═══════════════════════════════════════════
 // SKELETON LOADING
@@ -3561,27 +3557,8 @@ function shareTitle() {
   }
 }
 
-// ═══════════════════════════════════════════
-// ADVANCED SEARCH (patch doSearch)
-// ═══════════════════════════════════════════
-const _origDoSearch = doSearch;
-window.doSearch = async function(query) {
-  if(!query?.trim()) return;
-  navigate('search');
-  document.getElementById('main-search').value = query;
-  const el = document.getElementById('search-results');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Searching...</span></div>';
-  try {
-    const status = document.getElementById('filter-status')?.value || '';
-    const sort = document.getElementById('filter-sort')?.value || 'followedCount';
-    let url = `${API}/manga?limit=24&title=${encodeURIComponent(query)}&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&order[${sort}]=desc`;
-    if(status) url += `&status[]=${status}`;
-    url = buildUrl(url, S.searchFilters);
-    const res = await fetch(url);
-    const data = await res.json();
-    el.innerHTML = data.data?.length ? data.data.map(renderCard).join('') : '<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try different filters</p></div>';
-  } catch(e) { el.innerHTML='<div class="empty"><p>Search failed</p></div>'; }
-}
+// advanced search consolidated
+
 
 // ═══════════════════════════════════════════
 // LIBRARY SORT (patch renderLibrary)
@@ -3646,6 +3623,11 @@ window.renderLibrary = function(filter='all') {
 // ═══════════════════════════════════════════
 const _origOpenDetail = openDetail;
 window.openDetail = async function(id) {
+  // Route comick titles to comick handler
+  if(id && id.startsWith('comick_') && !id.startsWith('comick_ch_')) {
+    await openComickDetail(id);
+    return;
+  }
   navigate('detail');
   document.getElementById('chapter-list').innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
@@ -3736,18 +3718,7 @@ window.openChapter = async function(chapterId, chapterNum, idx) {
   }
 }
 
-// Profile tab + toolbar visibility patch
-const _origShowP = showPage;
-window.showPage = function(name) {
-  _origShowP(name);
-  // Toolbar only in reader
-  const toolbar = document.getElementById('reader-toolbar');
-  if(toolbar) toolbar.style.display = 'none'; // reader toolbar removed
-  // Render profile when switching to it
-  if(name === 'profile') {
-    setTimeout(function(){ renderProfile(); }, 50);
-  }
-};
+// profile rendering moved into showPage
 
 // year select populated via JS after DOM ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -3773,15 +3744,8 @@ window.navigate = function(page) {
 }
 
 // Also patch showPage to sync all 6 nav items including profile
-const _origShow = showPage;
-window.showPage = function(name) {
-  _origShow(name);
-  // sync profile btn
-  const pb = document.getElementById('bnav-profile');
-  if(pb) pb.classList.toggle('active', name==='profile');
-  const spb = document.getElementById('snav-profile');
-  if(spb) spb.classList.toggle('active', name==='profile');
-}
+// profile bnav sync moved into showPage
+
 
 // patch loadPopular to use skeleton
 const _origLoadPop = loadPopular;
