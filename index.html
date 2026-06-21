@@ -1144,6 +1144,77 @@ nav::before {
 #list-pick-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; align-items: flex-end; }
 #list-pick-modal.open { display: flex !important; }
 .pop-period-btn.active { background: var(--manga-red) !important; color: white !important; border-color: var(--manga-red) !important; }
+
+/* ── READER IMPROVEMENTS ── */
+.reader-progress-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px;
+  background: rgba(255,255,255,0.08); z-index: 200;
+}
+.reader-progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(to right, var(--manga-red), var(--accent));
+  transition: width 0.2s;
+}
+.reader-page-counter {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  color: white; font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px; letter-spacing: 2px;
+  padding: 5px 16px; z-index: 150;
+  border: 1px solid rgba(255,255,255,0.1);
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.3s;
+}
+.reader-page-counter.show { opacity: 1; }
+.reader-tap-zone {
+  position: fixed; top: 0; bottom: 0; z-index: 100;
+  width: 30%;
+}
+.reader-tap-left { left: 0; }
+.reader-tap-right { right: 0; }
+.reader-mode-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--muted); padding: 5px 10px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: 1px;
+  cursor: pointer; transition: all 0.2s;
+}
+.reader-mode-btn.active { background: var(--manga-red); border-color: var(--manga-red); color: white; }
+/* Long strip mode */
+#reader-images.long-strip { display: flex; flex-direction: column; align-items: center; }
+#reader-images.long-strip img { width: 100%; max-width: 800px; height: auto; display: block; }
+
+
+/* ── VISUAL POLISH ── */
+.manga-card:active .manga-cover,
+.manga-card:hover .manga-cover {
+  box-shadow: 0 8px 24px rgba(230,57,70,0.35), 0 0 0 1px rgba(230,57,70,0.2);
+  transform: translateY(-2px);
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.manga-cover { transition: all 0.2s; }
+.banner { height: 260px !important; }
+.banner-slide::after {
+  background: linear-gradient(to top, rgba(10,8,6,1) 0%, rgba(10,8,6,0.75) 40%, rgba(10,8,6,0.15) 80%, transparent 100%) !important;
+}
+.section-title {
+  font-size: 22px !important;
+}
+.section-title::after {
+  height: 3px !important;
+  width: 44px !important;
+}
+/* Detail meta pills */
+.meta-pill {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--muted);
+  font-size: 11px; padding: 4px 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.meta-pill.green { border-color: rgba(230,57,70,0.3); color: var(--manga-red); }
+
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -1647,6 +1718,7 @@ nav::before {
   </button>
   <div class="reader-divider"></div>
   <button class="reader-tool-btn" id="tool-night" onclick="toggleNight()">🌙</button>
+  <button class="reader-mode-btn" id="mode-strip" onclick="toggleLongStrip()" title="Long strip mode">☰</button>
 </div>
 <div class="reader-nav-btns" id="reader-nav">
   <button class="reader-nav-btn" id="prev-btn" onclick="navChapter(-1)">← PREV</button>
@@ -1812,8 +1884,34 @@ function getCover(m) {
   return null;
 }
 function getTitle(m) {
-  const t = m.attributes?.title;
-  return t?.en || t?.['ja-ro'] || t?.ja || t?.ko || t?.zh || Object.values(t||{})[0] || 'Unknown';
+  const t = m.attributes?.title || {};
+  // Prefer English, then romanized, then check altTitles
+  if(t.en) return t.en;
+  if(t['ja-ro']) return t['ja-ro'];
+  if(t['ko-ro']) return t['ko-ro'];
+  if(t['zh-ro']) return t['zh-ro'];
+  // Check altTitles for English
+  const alts = m.attributes?.altTitles || [];
+  for(const alt of alts) {
+    if(alt.en) return alt.en;
+  }
+  // Check altTitles for romanized
+  for(const alt of alts) {
+    if(alt['ja-ro'] || alt['ko-ro']) return alt['ja-ro'] || alt['ko-ro'];
+  }
+  // Fall back to any Latin script title
+  const latinKeys = Object.keys(t).filter(k => !['ja','ko','zh','th','ar','he','ru'].includes(k));
+  if(latinKeys.length) return t[latinKeys[0]];
+  // Last resort - any title
+  return Object.values(t)[0] || 'Unknown';
+}
+
+function getOriginalTitle(m) {
+  const t = m.attributes?.title || {};
+  // Return non-English original title if different from English
+  const eng = getTitle(m);
+  const orig = t.ja || t.ko || t.zh || null;
+  return (orig && orig !== eng) ? orig : null;
 }
 function getType(m) {
   const o = m.attributes?.originalLanguage;
@@ -2079,33 +2177,100 @@ async function doSearch(query) {
 // ═══════════════════════════════════════════
 async function openDetail(id) {
   navigate('detail');
-  document.getElementById('chapter-list').innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
+  document.getElementById('chapter-list').innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const res=await fetch(API + `/manga/${id}?includes[]=cover_art`);
-    const data=await res.json();
-    const m=data.data;
-    S.currentManga=m;
-    const cover=getCover(m),title=getTitle(m),type=getType(m);
-    const desc=m.attributes?.description?.en||Object.values(m.attributes?.description||{})[0]||'No description.';
-    const tags=m.attributes?.tags?.slice(0,8).map(t=>t.attributes?.name?.en||'')||[];
-    document.getElementById('detail-cover-img').src=cover||'';
-    document.getElementById('detail-backdrop').style.backgroundImage=cover?`url(${cover})`:'';
-    document.getElementById('detail-title').textContent=title;
-    document.getElementById('detail-type').textContent=type;
-    document.getElementById('detail-desc').textContent=desc;
-    document.getElementById('detail-tags').innerHTML=tags.map(t=>`<span class="tag">${t}</span>`).join('');
-    const chapRes=await fetch(API + `/manga/${id}/feed?limit=96&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`);
-    const chapData=await chapRes.json();
-    S.currentChapters=chapData.data||[];
-    if(!S.currentChapters.length){document.getElementById('chapter-list').innerHTML='<div class="empty"><p>No English chapters found</p></div>';return;}
-    document.getElementById('chapter-list').innerHTML=S.currentChapters.map((ch,i)=>`
-      <div class="chapter-item${isChRead(ch.id)?' read':''}" onclick="openChapter('${esc(ch.id)}','${esc(ch.attributes?.chapter||'?')}',${i})">
-        <div class="chapter-num">CH ${ch.attributes?.chapter||'?'}</div>
-        <div class="chapter-name">${ch.attributes?.title||`Chapter ${ch.attributes?.chapter||'?'}`}</div>
-        <div class="chapter-date">${timeAgo(ch.attributes?.publishAt)}</div>
-        <div class="ch-read-dot"></div>
-      </div>`).join('');
-  } catch(e){document.getElementById('chapter-list').innerHTML='<div class="empty"><p>Failed to load</p></div>';}
+    const res = await fetch(API + `/manga/${id}?includes[]=cover_art&includes[]=author&includes[]=artist`);
+    const data = await res.json();
+    const m = data.data;
+    S.currentManga = m;
+
+    const cover = getCover(m);
+    const title = getTitle(m);
+    const origTitle = getOriginalTitle(m);
+    const type = getType(m);
+    const desc = m.attributes?.description?.en || Object.values(m.attributes?.description||{})[0] || 'No description available.';
+    const tags = m.attributes?.tags?.slice(0,10).map(t => t.attributes?.name?.en || '').filter(Boolean) || [];
+    const status = m.attributes?.status || '';
+    const year = m.attributes?.year || '';
+    const author = m.relationships?.find(r => r.type === 'author')?.attributes?.name || '';
+
+    // Cover + backdrop
+    const coverImg = document.getElementById('detail-cover-img');
+    const backdrop = document.getElementById('detail-backdrop');
+    if(coverImg) coverImg.src = cover || '';
+    if(backdrop) backdrop.style.backgroundImage = cover ? `url(${cover})` : '';
+
+    // Title with original below
+    const titleEl = document.getElementById('detail-title');
+    if(titleEl) {
+      titleEl.innerHTML = esc(title) + (origTitle ? `<div style="font-size:13px;color:var(--muted);font-family:'Zen Kaku Gothic New',sans-serif;margin-top:4px;font-weight:400;letter-spacing:1px">${esc(origTitle)}</div>` : '');
+    }
+
+    // Type + meta
+    const typeEl = document.getElementById('detail-type');
+    if(typeEl) typeEl.textContent = type;
+
+    // Author + year + status row
+    const metaEl = document.getElementById('detail-meta');
+    if(metaEl) {
+      metaEl.innerHTML = [
+        author ? `<span class="meta-pill">✍️ ${esc(author)}</span>` : '',
+        year ? `<span class="meta-pill">📅 ${year}</span>` : '',
+        status ? `<span class="meta-pill ${status === 'ongoing' ? 'green' : ''}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>` : '',
+      ].filter(Boolean).join('');
+    }
+
+    // Description
+    const descEl = document.getElementById('detail-desc');
+    if(descEl) descEl.textContent = desc;
+
+    // Tags
+    const tagsEl = document.getElementById('detail-tags');
+    if(tagsEl) tagsEl.innerHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+    // Reading status
+    const sel = document.getElementById('reading-status-select');
+    if(sel) sel.value = getReadingStatus ? getReadingStatus(id) : '';
+
+    // Chapters
+    const chapRes = await fetch(API + `/manga/${id}/feed?limit=500&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`);
+    const chapData = await chapRes.json();
+    S.currentChapters = chapData.data || [];
+
+    const chList = document.getElementById('chapter-list');
+    if(!S.currentChapters.length) {
+      const googleUrl = 'https://google.com/search?q=' + encodeURIComponent(title + ' manga read english');
+      chList.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><h3>No English Chapters</h3><p>Try finding it on a scanlation site</p>' +
+        '<a href="' + googleUrl + '" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:var(--manga-red);color:white;border-radius:0;font-family:Bebas Neue,sans-serif;letter-spacing:2px;font-size:14px;text-decoration:none">SEARCH GOOGLE</a></div>';
+      return;
+    }
+
+    // Progress indicator
+    const readCount = S.currentChapters.filter(ch => isChRead(ch.id)).length;
+    const total = S.currentChapters.length;
+    const progressHtml = readCount > 0
+      ? `<div style="padding:8px 0 12px;font-size:11px;color:var(--muted);font-family:'Zen Kaku Gothic New',sans-serif">
+          Read <span style="color:var(--manga-red);font-weight:600">${readCount}</span> of <span style="color:var(--text)">${total}</span> chapters
+          <div style="height:2px;background:var(--border);margin-top:6px;border-radius:1px"><div style="height:100%;width:${Math.round(readCount/total*100)}%;background:var(--manga-red);border-radius:1px"></div></div>
+        </div>` : `<div style="padding:4px 0 12px;font-size:11px;color:var(--muted)">${total} chapters available</div>`;
+
+    chList.innerHTML = progressHtml + S.currentChapters.map(function(ch, i) {
+      const read = isChRead(ch.id);
+      const num = ch.attributes?.chapter || '?';
+      const chTitle = ch.attributes?.title || '';
+      const date = timeAgo(ch.attributes?.publishAt);
+      const chId = esc(ch.id);
+      const chNum = esc(num);
+      return '<div class="chapter-item' + (read ? ' read' : '') + '" onclick="openChapter(&#39;' + chId + '&#39;,&#39;' + chNum + '&#39;,' + i + ')">' +
+        '<div class="chapter-num">CH ' + num + '</div>' +
+        '<div class="chapter-name">' + (chTitle || 'Chapter ' + num) + '</div>' +
+        '<div class="chapter-date">' + date + '</div>' +
+        '<div class="ch-read-dot"></div></div>';
+    }).join('');
+
+  } catch(e) {
+    document.getElementById('chapter-list').innerHTML = '<div class="empty"><div class="empty-icon">😵</div><h3>Failed to load</h3><button onclick="openDetail(&#39;' + id + '&#39;)" style="margin-top:8px;padding:6px 20px;background:var(--accent);border:none;color:white;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:2px">↺ RETRY</button></div>';
+  }
 }
 
 function readFirst() {
@@ -3524,6 +3689,68 @@ function skipIntro() {
     intro.classList.add('hidden');
   }, 700);
 }
+
+
+// ── READER TAP NAVIGATION ──
+let readerImgIndex = 0;
+let longStripMode = false;
+let pageCountTimer = null;
+
+function readerTapLeft() {
+  const imgs = document.querySelectorAll('#reader-images img');
+  if(!imgs.length || longStripMode) return;
+  readerImgIndex = Math.min(imgs.length - 1, readerImgIndex + 1);
+  imgs[readerImgIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showPageCount(readerImgIndex + 1, imgs.length);
+}
+
+function readerTapRight() {
+  const imgs = document.querySelectorAll('#reader-images img');
+  if(!imgs.length || longStripMode) return;
+  readerImgIndex = Math.max(0, readerImgIndex - 1);
+  imgs[readerImgIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showPageCount(readerImgIndex + 1, imgs.length);
+}
+
+function showPageCount(current, total) {
+  const el = document.getElementById('reader-page-counter');
+  if(!el) return;
+  el.textContent = current + ' / ' + total;
+  el.classList.add('show');
+  clearTimeout(pageCountTimer);
+  pageCountTimer = setTimeout(function() { el.classList.remove('show'); }, 2000);
+}
+
+function toggleLongStrip() {
+  longStripMode = !longStripMode;
+  const images = document.getElementById('reader-images');
+  const btn = document.getElementById('mode-strip');
+  const tapL = document.getElementById('tap-left');
+  const tapR = document.getElementById('tap-right');
+  if(images) images.classList.toggle('long-strip', longStripMode);
+  if(btn) btn.classList.toggle('active', longStripMode);
+  if(tapL) tapL.style.display = longStripMode ? 'none' : '';
+  if(tapR) tapR.style.display = longStripMode ? 'none' : '';
+}
+
+// Reader scroll progress
+window.addEventListener('scroll', function() {
+  const fill = document.getElementById('reader-prog-fill');
+  if(!fill) return;
+  const pct = Math.min(100, (window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight)) * 100);
+  fill.style.width = pct + '%';
+
+  // Update page counter based on scroll
+  if(longStripMode) return;
+  const imgs = document.querySelectorAll('#reader-images img');
+  if(!imgs.length) return;
+  for(let i = imgs.length - 1; i >= 0; i--) {
+    if(imgs[i].getBoundingClientRect().top <= window.innerHeight / 2) {
+      if(readerImgIndex !== i) { readerImgIndex = i; showPageCount(i + 1, imgs.length); }
+      break;
+    }
+  }
+});
 
 // ═══════════════════════════════════════════
 // INIT
