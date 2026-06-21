@@ -1569,12 +1569,90 @@ nav::before {
 </div>
 
 <!-- READER -->
-<div id="page-reader" class="page">
-  <div class="reader-header">
-    <button class="back-btn" onclick="goBack()">← Back</button>
-    <div id="reader-title" class="reader-title"></div>
+<div id="page-reader" class="page" style="-webkit-user-select:none;user-select:none;touch-action:pan-y">
+
+  <!-- Red progress bar across top -->
+  <div id="reader-prog-bar" style="position:fixed;top:0;left:0;right:0;height:3px;z-index:999;pointer-events:none">
+    <div id="reader-prog-fill" style="height:100%;width:0%;background:linear-gradient(to right,#e63946,#7c3aed);transition:width 0.2s"></div>
   </div>
+
+  <!-- % badge top-right -->
+  <div id="reader-pct-badge" style="position:fixed;top:8px;right:12px;z-index:998;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);color:white;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;padding:3px 10px;border-radius:12px;opacity:0;transition:opacity 0.3s;pointer-events:none">0%</div>
+
+  <!-- Sliding header — visible on double tap -->
+  <div id="reader-header-ui" class="reader-header-ui">
+    <button class="back-btn" onclick="goBack()" style="background:rgba(0,0,0,0.55);border:none;color:white;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;border-radius:20px;display:flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent">← BACK</button>
+    <div id="reader-title" style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:white;text-align:center;flex:1;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <button onclick="openReaderSettings()" style="background:rgba(0,0,0,0.55);border:none;color:white;width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent">⚙</button>
+  </div>
+
+  <!-- Manga pages -->
   <div id="reader-images" class="reader-images" onclick="readerHandleTap(event)"></div>
+
+  <!-- PREV / CH / NEXT pill — visible on double tap -->
+  <div id="reader-nav" class="reader-nav-btns">
+    <button class="reader-nav-btn" id="prev-btn" onclick="navChapter(-1)">← PREV</button>
+    <div class="reader-ch-info" id="reader-ch-info">CH 1</div>
+    <button class="reader-nav-btn" id="next-btn" onclick="navChapter(1)">NEXT →</button>
+  </div>
+
+  <!-- Left / right tap zones -->
+  <div class="reader-tap-zone reader-tap-left" id="tap-left"></div>
+  <div class="reader-tap-zone reader-tap-right" id="tap-right"></div>
+
+  <!-- Night mode dim overlay -->
+  <div id="night-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;z-index:90;transition:background 0.3s"></div>
+
+  <!-- Reader settings panel (triple tap to open) -->
+  <div id="reader-settings-panel" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeReaderSettings()">
+    <div style="background:#0f0d0b;border:1px solid rgba(230,57,70,0.25);width:100%;max-width:340px;overflow:hidden">
+      <!-- Header -->
+      <div style="background:rgba(230,57,70,0.08);border-bottom:1px solid rgba(230,57,70,0.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;color:white">READER SETTINGS</div>
+        <button onclick="closeReaderSettings()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:white;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:10px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">✕</button>
+      </div>
+      <div style="padding:16px 20px;display:flex;flex-direction:column;gap:0">
+        <!-- Long Strip -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">☰ LONG STRIP</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Continuous scroll for manhwa</div>
+          </div>
+          <div class="toggle" id="rs-strip-toggle" onclick="readerToggleLongStrip()"></div>
+        </div>
+        <!-- Night Mode -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">🌙 NIGHT MODE</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Dim overlay for dark rooms</div>
+          </div>
+          <div class="toggle" id="rs-night-toggle" onclick="readerToggleNight()"></div>
+        </div>
+        <!-- Performance -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">⚡ PERFORMANCE</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Lower quality, faster loading</div>
+          </div>
+          <div class="toggle" id="rs-perf-toggle" onclick="toggleReaderPerf()"></div>
+        </div>
+        <!-- Controls mode -->
+        <div style="padding:14px 0">
+          <div style="font-size:10px;letter-spacing:3px;color:#e63946;margin-bottom:10px;font-family:'Bebas Neue',sans-serif">SHOW CONTROLS ON</div>
+          <div style="display:flex;gap:8px">
+            <button class="rs-mode-btn" data-mode="double" onclick="setReaderNavMode('double')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">👆👆<br>DOUBLE TAP</button>
+            <button class="rs-mode-btn" data-mode="single" onclick="setReaderNavMode('single')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">👆<br>SINGLE TAP</button>
+            <button class="rs-mode-btn" data-mode="always" onclick="setReaderNavMode('always')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">📌<br>ALWAYS</button>
+          </div>
+        </div>
+        <!-- Hint -->
+        <div style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="font-size:11px;color:rgba(255,255,255,0.35)">💡 <strong style="color:rgba(255,255,255,0.7)">Triple tap</strong> anywhere to open · <strong style="color:rgba(255,255,255,0.7)">Double tap</strong> to show controls</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 
@@ -1844,7 +1922,7 @@ const USE_CF_PROXY = true; // Cloudflare Worker deployed ✅
 
 function proxyImg(url) {
   if(!url) return null;
-  if(USE_CF_PROXY) return CF_PROXY + '?url=' + encodeURIComponent(url);
+  if(USE_CF_PROXY) return CF_PROXY + '/img?url=' + encodeURIComponent(url);
   return url; // direct until proxy is deployed
 }
 const API = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api';
@@ -3780,47 +3858,15 @@ function toggleLongStrip() {
 }
 
 // Reader scroll progress
-var _readerPctTimer = null;
-window.addEventListener('scroll', function() {
-  var page = document.querySelector('.page.active');
-  if(!page || page.id !== 'page-reader') return;
-  const fill = document.getElementById('reader-prog-fill');
-  const badge = document.getElementById('reader-pct-badge');
-  const scrollPct = Math.min(100, Math.round((window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight)) * 100));
-  if(fill) fill.style.width = scrollPct + '%';
-  if(badge) {
-    badge.textContent = scrollPct + '%';
-    badge.style.opacity = '1';
-    clearTimeout(_readerPctTimer);
-    _readerPctTimer = setTimeout(function(){ if(badge) badge.style.opacity = '0'; }, 2000);
-  }
-  // legacy fill
-  const fill2 = document.getElementById('reader-prog-fill');
-  if(!fill2) return;
-  fill2.style.width = pct + '%';
-
-  // Update page counter based on scroll
-  if(longStripMode) return;
-  const imgs = document.querySelectorAll('#reader-images img');
-  if(!imgs.length) return;
-  for(let i = imgs.length - 1; i >= 0; i--) {
-    if(imgs[i].getBoundingClientRect().top <= window.innerHeight / 2) {
-      if(readerImgIndex !== i) { readerImgIndex = i; showPageCount(i + 1, imgs.length); }
-      break;
-    }
-  }
-});
-
-
 // ══ READER INTERACTION SYSTEM ══
-var readerNavMode = 'double'; // 'double' | 'single' | 'always'
+var readerNavMode = 'double';
 var readerLongStrip = false;
 var readerNightOn = false;
 var readerTapCount = 0;
 var readerTapTimer = null;
 var readerHideTimer = null;
-var readerPctTimer = null;
-var readerDoubleTapTimer = null;
+var readerImgIndex = 0;
+var _readerPctTimer = null;
 
 function readerShowControls() {
   var h = document.getElementById('reader-header-ui');
@@ -3847,12 +3893,10 @@ function readerToggleControls() {
 
 function readerHandleTap(e) {
   if(!e || !e.target) return;
-  // Ignore taps on nav/header/settings
   var t = e.target;
   if(t.closest) {
     if(t.closest('#reader-nav') || t.closest('#reader-header-ui') ||
        t.closest('#reader-settings-panel')) return;
-    // Tap zones for page navigation
     if(t.closest('#tap-left')) { readerTapLeft(); return; }
     if(t.closest('#tap-right')) { readerTapRight(); return; }
   }
@@ -3865,8 +3909,7 @@ function readerHandleTap(e) {
       readerToggleControls();
     } else if(count === 2) {
       readerToggleControls();
-      // Pulse zoom on tapped image
-      var img = e.target.tagName === 'IMG' ? e.target : null;
+      var img = (e.target && e.target.tagName === 'IMG') ? e.target : null;
       if(img) {
         img.style.transition = 'transform 0.15s ease';
         img.style.transform = 'scale(1.05)';
@@ -3876,7 +3919,7 @@ function readerHandleTap(e) {
     } else if(count >= 3) {
       openReaderSettings();
     }
-  }, 200);
+  }, 350);
 }
 
 function readerTapLeft() {
@@ -3905,7 +3948,7 @@ function openReaderSettings() {
   if(nt) nt.classList.toggle('on', readerNightOn);
   if(pt) pt.classList.toggle('on', !!window.readerPerfMode);
   document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.mode === readerNavMode);
+    b.classList.toggle('active', b.dataset && b.dataset.mode === readerNavMode);
   });
 }
 function closeReaderSettings() {
@@ -3915,7 +3958,7 @@ function closeReaderSettings() {
 function setReaderNavMode(mode) {
   readerNavMode = mode;
   document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.mode === mode);
+    b.classList.toggle('active', b.dataset && b.dataset.mode === mode);
   });
   if(mode === 'always') readerShowControls();
   closeReaderSettings();
@@ -3930,7 +3973,7 @@ function readerToggleLongStrip() {
 function readerToggleNight() {
   readerNightOn = !readerNightOn;
   var o = document.getElementById('night-overlay');
-  if(o) o.style.opacity = readerNightOn ? '0.35' : '0';
+  if(o) o.style.background = readerNightOn ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0)';
   var t = document.getElementById('rs-night-toggle');
   if(t) t.classList.toggle('on', readerNightOn);
 }
@@ -3942,8 +3985,7 @@ function toggleReaderPerf() {
 function toggleLongStrip() { readerToggleLongStrip(); }
 function toggleNight() { readerToggleNight(); }
 
-// Scroll progress tracker
-var _pctTimer = null;
+// Scroll progress
 window.addEventListener('scroll', function() {
   var page = document.querySelector('.page.active');
   if(!page || page.id !== 'page-reader') return;
@@ -3956,10 +3998,11 @@ window.addEventListener('scroll', function() {
   if(badge) {
     badge.textContent = pct + '%';
     badge.style.opacity = '1';
-    clearTimeout(_pctTimer);
-    _pctTimer = setTimeout(function(){ if(badge) badge.style.opacity = '0'; }, 2000);
+    clearTimeout(_readerPctTimer);
+    _readerPctTimer = setTimeout(function(){ if(badge) badge.style.opacity = '0'; }, 2000);
   }
 }, { passive: true });
+
 
 
 // ═══════════════════════════════════════════
