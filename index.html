@@ -167,7 +167,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
   position:fixed;
   bottom:calc(16px + env(safe-area-inset-bottom));
   left:50%;transform:translateX(-50%);
-  display:flex;
+  display:none;
   gap:0;z-index:200;align-items:center;
   background:rgba(7,7,13,0.88);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -1236,6 +1236,8 @@ nav::before {
 }
 .meta-pill.green { border-color: rgba(230,57,70,0.3); color: var(--manga-red); }
 
+.rs-mode-btn.active { border-color: var(--manga-red) !important; background: rgba(230,57,70,0.1) !important; }
+.rs-mode-btn.active div:first-child { color: var(--manga-red) !important; }
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -1586,6 +1588,7 @@ nav::before {
   <div class="reader-header">
     <button class="back-btn" onclick="goBack()">← Back</button>
     <div id="reader-title" class="reader-title"></div>
+    <button onclick="openReaderSettings()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;padding:4px 8px;margin-left:auto">⚙</button>
   </div>
   <div id="reader-images" class="reader-images"></div>
 </div>
@@ -1745,6 +1748,63 @@ nav::before {
   <button class="reader-nav-btn" id="prev-btn" onclick="navChapter(-1)">← PREV</button>
   <div class="reader-ch-info" id="reader-ch-info">CH 1</div>
   <button class="reader-nav-btn" id="next-btn" onclick="navChapter(1)">NEXT →</button>
+</div>
+
+
+<!-- READER SETTINGS PANEL -->
+<div id="reader-settings-panel" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeReaderSettings()">
+  <div style="background:#0f0d0b;border:1px solid rgba(255,255,255,0.1);width:100%;max-width:340px;padding:24px">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:white">READER SETTINGS</div>
+      <button onclick="closeReaderSettings()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;padding:4px">✕</button>
+    </div>
+
+    <!-- Nav Mode -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px;font-family:'Bebas Neue',sans-serif">TOOLBAR TRIGGER</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="rs-mode-btn" data-mode="double" onclick="setReaderNavMode('double')"
+          style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;text-align:left">
+          <span style="font-size:20px">👆👆</span>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">DOUBLE TAP</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Tap twice fast to show/hide</div>
+          </div>
+        </button>
+        <button class="rs-mode-btn" data-mode="single" onclick="setReaderNavMode('single')"
+          style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;text-align:left">
+          <span style="font-size:20px">👆</span>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">SINGLE TAP</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">One tap anywhere to toggle</div>
+          </div>
+        </button>
+        <button class="rs-mode-btn" data-mode="always" onclick="setReaderNavMode('always')"
+          style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;text-align:left">
+          <span style="font-size:20px">📌</span>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">ALWAYS VISIBLE</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Toolbar never hides</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Performance Mode -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">⚡ PERFORMANCE MODE</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Lower quality, faster loading</div>
+      </div>
+      <div class="toggle" id="rs-perf-toggle" onclick="toggleReaderPerf()"></div>
+    </div>
+
+    <!-- How to access -->
+    <div style="margin-top:16px;padding:10px 16px;background:rgba(230,57,70,0.08);border-left:2px solid var(--manga-red)">
+      <div style="font-size:11px;color:var(--muted)">Access settings anytime while reading by tapping the <strong style="color:white">⚙</strong> button in the reader header</div>
+    </div>
+  </div>
 </div>
 
 <!-- ZOOM -->
@@ -1992,10 +2052,18 @@ function showPage(name) {
   const sNav = document.getElementById('side-nav');
   const bNav = document.getElementById('bottom-nav');
   if(rNav) {
-    rNav.style.display = inReader ? 'flex' : 'none';
-    if(inReader) {
-      rNav.classList.remove('hidden');
-      readerStartAutoHide();
+    if(!inReader) {
+      rNav.style.display = 'none';
+      rNav.classList.add('hidden');
+    } else {
+      // In reader: show based on mode
+      if(readerNavMode === 'always') {
+        rNav.style.display = 'flex';
+        rNav.classList.remove('hidden');
+      } else {
+        rNav.style.display = 'flex';
+        rNav.classList.add('hidden'); // hidden but flex so transitions work
+      }
     }
   }
   if(rProg) rProg.style.display = inReader?'block':'none';
@@ -3780,63 +3848,88 @@ window.addEventListener('scroll', function() {
 });
 
 
-// ── READER TOOLBAR AUTO-HIDE ──
-var readerHideTimer = null;
-var readerNavVisible = true;
+// ── READER TOOLBAR BEHAVIOR ──
+var readerLastTap = 0;
+var readerNavMode = 'double'; // 'double' | 'single' | 'always'
 
 function readerShowNav() {
   var nav = document.getElementById('reader-nav');
-  if(!nav || nav.style.display === 'none') return;
+  if(!nav) return;
   nav.classList.remove('hidden');
-  readerNavVisible = true;
-  readerStartAutoHide();
+  nav.style.display = 'flex';
 }
 
 function readerHideNav() {
   var nav = document.getElementById('reader-nav');
   if(!nav) return;
   nav.classList.add('hidden');
-  readerNavVisible = false;
 }
 
 function readerToggleNav() {
-  if(readerNavVisible) readerHideNav();
-  else readerShowNav();
+  var nav = document.getElementById('reader-nav');
+  if(!nav) return;
+  if(nav.classList.contains('hidden')) readerShowNav();
+  else readerHideNav();
 }
 
-function readerStartAutoHide() {
-  clearTimeout(readerHideTimer);
-  readerHideTimer = setTimeout(function() {
-    readerHideNav();
-  }, 3000);
+function openReaderSettings() {
+  var panel = document.getElementById('reader-settings-panel');
+  if(panel) {
+    panel.style.display = 'flex';
+    // Update toggles to reflect current settings
+    document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.mode === readerNavMode);
+    });
+    var perfToggle = document.getElementById('rs-perf-toggle');
+    if(perfToggle) perfToggle.classList.toggle('on', !!window.readerPerfMode);
+  }
 }
 
-// Show on tap, scroll
-document.addEventListener('touchstart', function(e) {
-  var page = document.querySelector('.page.active');
-  if(!page || page.id !== 'page-reader') return;
-  // Don't interfere with tap zones
-  if(e.target.classList.contains('reader-tap-zone')) return;
-  readerShowNav();
-}, { passive: true });
+function closeReaderSettings() {
+  var panel = document.getElementById('reader-settings-panel');
+  if(panel) panel.style.display = 'none';
+}
 
-document.addEventListener('scroll', function() {
-  var page = document.querySelector('.page.active');
-  if(!page || page.id !== 'page-reader') return;
-  readerShowNav();
-}, { passive: true });
+function setReaderNavMode(mode) {
+  readerNavMode = mode;
+  document.querySelectorAll('.rs-mode-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  if(mode === 'always') readerShowNav();
+  else readerHideNav();
+  closeReaderSettings();
+  toast('Nav: ' + (mode === 'double' ? 'Double tap' : mode === 'single' ? 'Single tap' : 'Always visible'));
+}
 
-// Double tap to hide
-var lastTap = 0;
+function toggleReaderPerf() {
+  window.readerPerfMode = !window.readerPerfMode;
+  var t = document.getElementById('rs-perf-toggle');
+  if(t) t.classList.toggle('on', window.readerPerfMode);
+}
+
+// Touch handler for reader nav modes
+var readerDoubleTapTimer = null;
 document.addEventListener('touchend', function(e) {
   var page = document.querySelector('.page.active');
   if(!page || page.id !== 'page-reader') return;
+  // Ignore taps on toolbar, tap zones, settings
+  if(e.target.closest('#reader-nav') || e.target.closest('#reader-settings-panel') ||
+     e.target.closest('.reader-tap-zone') || e.target.closest('.reader-header')) return;
+
   var now = Date.now();
-  if(now - lastTap < 300) {
-    readerHideNav();
-    clearTimeout(readerHideTimer);
+  if(now - readerLastTap < 280) {
+    // Double tap
+    clearTimeout(readerDoubleTapTimer);
+    if(readerNavMode === 'double') readerToggleNav();
+    else if(readerNavMode === 'always') openReaderSettings();
+    readerLastTap = 0;
+  } else {
+    readerLastTap = now;
+    readerDoubleTapTimer = setTimeout(function() {
+      // Single tap
+      if(readerNavMode === 'single') readerToggleNav();
+    }, 290);
   }
-  lastTap = now;
 }, { passive: true });
 
 // ═══════════════════════════════════════════
