@@ -32,7 +32,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 
 /* NAV */
 nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;background:linear-gradient(135deg,#c084fc,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0;}
+.nav-logo{font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:4px;background:linear-gradient(135deg,#c084fc,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0;}
 .nav-tabs{display:flex;gap:2px;}
 .nav-tab{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;padding:6px 12px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
 .nav-tab:hover{color:var(--text);background:rgba(255,255,255,0.05);}
@@ -48,7 +48,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 /* SECTION */
 .section{max-width:1200px;margin:0 auto;padding:0 20px 48px;}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+.section-title{font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;}
 .section-title::before{content:'';display:inline-block;width:3px;height:16px;background:linear-gradient(to bottom,var(--accent2),var(--accent));margin-right:10px;vertical-align:middle;border-radius:2px;}
 .section-actions{display:flex;gap:8px;align-items:center;}
 .see-all{font-size:11px;color:var(--muted);background:none;border:1px solid var(--border);cursor:pointer;font-family:'Inter',sans-serif;padding:5px 12px;border-radius:20px;transition:all 0.2s;}
@@ -68,7 +68,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 .manga-card:hover .manga-cover img{transform:scale(1.08);}
 .manga-cover::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 50%);pointer-events:none;}
 .manga-card:hover .manga-cover{box-shadow:0 8px 28px rgba(124,58,237,0.3);}
-.manga-cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16161f,#0f0f18);color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;text-align:center;padding:8px;}
+.manga-cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16161f,#0f0f18);color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;text-align:center;padding:8px;}
 .manga-badge{position:absolute;top:8px;left:8px;background:rgba(124,58,237,0.85);backdrop-filter:blur(4px);color:white;font-size:8px;font-weight:700;padding:3px 7px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;z-index:2;}
 .manga-info{padding:10px 2px 0;}
 .manga-title{font-size:12.5px;font-weight:500;color:var(--text);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -80,7 +80,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty{text-align:center;padding:60px;color:var(--muted);}
 .empty-icon{font-size:44px;margin-bottom:14px;opacity:0.6;}
-.empty h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:8px;color:var(--text);}
+.empty h3{font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:8px;color:var(--text);}
 .empty p{font-size:13px;}
 
 /* HOME TABS */
@@ -111,7 +111,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 .modal{background:#0f0f18;border:1px solid rgba(255,255,255,0.07);border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.modal-title{font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;}
 .modal-close{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
 .modal-body{overflow-y:auto;padding:20px 24px;flex:1;}
 .modal-footer{padding:16px 24px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:10px;}
@@ -139,7 +139,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 .detail-cover img{width:100%;display:block;}
 .detail-info{flex:1;}
 .detail-type{font-size:10px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;margin-bottom:10px;font-weight:600;}
-.detail-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,4vw,48px);letter-spacing:1px;line-height:0.95;margin-bottom:12px;}
+.detail-title{font-family:Bebas Neue,sans-serif;font-size:clamp(28px,4vw,48px);letter-spacing:1px;line-height:0.95;margin-bottom:12px;}
 .detail-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:580px;margin-bottom:18px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
 .tag{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-size:11px;padding:4px 12px;border-radius:20px;}
@@ -153,18 +153,18 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 .chapter-list{display:flex;flex-direction:column;gap:3px;}
 .chapter-item{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:rgba(255,255,255,0.02);border:1px solid transparent;border-radius:10px;cursor:pointer;transition:all 0.15s;}
 .chapter-item:hover{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.25);}
-.chapter-num{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--accent2);width:72px;}
+.chapter-num{font-family:Bebas Neue,sans-serif;font-size:15px;letter-spacing:1px;color:var(--accent2);width:72px;}
 .chapter-name{flex:1;font-size:13px;color:var(--text);}
 .chapter-date{font-size:10.5px;color:var(--muted);}
 
 /* READER */
 .reader-header{background:rgba(7,7,13,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 20px;display:flex;align-items:center;gap:16px;}
-.reader-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;opacity:0.85;}
+.reader-title{font-family:Bebas Neue,sans-serif;font-size:17px;letter-spacing:1px;opacity:0.85;}
 .reader-images{max-width:760px;margin:0 auto;padding:16px 12px 120px;display:flex;flex-direction:column;gap:2px;overflow-x:hidden;}
 .reader-images img{width:100%;max-width:100%;display:block;border-radius:2px;cursor:zoom-in;touch-action:pan-y;}
 .reader-progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:300;transition:width 0.1s;border-radius:0 2px 2px 0;pointer-events:none;}
 .reader-nav-btns{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:200;align-items:center;background:rgba(7,7,13,0.92);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:40px;padding:8px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.6);}
-.reader-nav-btn{background:none;border:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;padding:4px 12px;border-radius:20px;transition:all 0.2s;}
+.reader-nav-btn{background:none;border:none;color:var(--text);font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;padding:4px 12px;border-radius:20px;transition:all 0.2s;}
 .reader-nav-btn:hover{background:var(--surface2);color:var(--accent2);}
 .reader-nav-btn:disabled{opacity:0.3;cursor:not-allowed;}
 .reader-ch-info{font-size:11px;color:var(--muted);letter-spacing:1px;min-width:60px;text-align:center;}
@@ -187,7 +187,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 
 /* LIBRARY */
 .library-page{max-width:1200px;margin:0 auto;padding:28px 20px;}
-.library-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:4px;}
+.library-title{font-family:Bebas Neue,sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:4px;}
 .library-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
 .filter-pills{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;}
 .filter-pill{background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--muted);font-size:12px;font-family:'Inter',sans-serif;padding:6px 16px;border-radius:20px;cursor:pointer;transition:all 0.15s;}
@@ -197,7 +197,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 .lists-page{max-width:1200px;margin:0 auto;padding:28px 20px;}
 .list-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.2s;}
 .list-card:hover{border-color:var(--accent);}
-.list-card-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;}
+.list-card-title{font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;}
 .list-card-count{font-size:12px;color:var(--muted);}
 .list-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;margin-bottom:12px;}
 .list-input:focus{border-color:var(--accent);}
@@ -211,7 +211,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(7,7,13,0.9);backdrop-filte
 .settings-panel{background:var(--surface);border-left:1px solid var(--border);width:300px;max-width:90vw;height:100%;overflow-y:auto;display:flex;flex-direction:column;animation:slideInRight 0.3s cubic-bezier(0.16,1,0.3,1);}
 /* slideInRight replaced with CSS transition */
 .settings-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
-.settings-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.settings-title{font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:2px;}
 .settings-close{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .settings-body{padding:20px;display:flex;flex-direction:column;gap:24px;}
 .settings-section-title{font-size:10px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;margin-bottom:14px;font-weight:600;}
@@ -260,7 +260,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .snav-btn.active{background:white;color:#07070d;box-shadow:0 4px 16px rgba(255,255,255,0.15);}
 .snav-top{display:flex;align-items:center;gap:14px;padding:0 10px;height:40px;margin-bottom:2px;}
 .snav-logo-icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--accent2);}
-.snav-logo-label{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:#fff;opacity:0;transform:translateX(-8px);transition:opacity 0.2s,transform 0.25s;}
+.snav-logo-label{font-family:Bebas Neue,sans-serif;font-size:17px;letter-spacing:2px;color:#fff;opacity:0;transform:translateX(-8px);transition:opacity 0.2s,transform 0.25s;}
 .side-nav.expanded .snav-logo-label{opacity:1;transform:translateX(0);}
 .snav-divider{height:1px;background:rgba(255,255,255,0.1);margin:4px 8px;border-radius:1px;}
 
@@ -275,7 +275,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .banner-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(7,7,13,0.92) 0%,rgba(7,7,13,0.5) 50%,transparent 100%);}
 .banner-content{position:absolute;left:28px;bottom:28px;max-width:360px;}
 .banner-type{font-size:10px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;margin-bottom:8px;}
-.banner-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:1px;line-height:1;margin-bottom:8px;}
+.banner-title{font-family:Bebas Neue,sans-serif;font-size:38px;letter-spacing:1px;line-height:1;margin-bottom:8px;}
 .banner-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .banner-btn{background:var(--accent);color:white;border:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:8px 20px;border-radius:20px;cursor:pointer;}
 .banner-dots{position:absolute;bottom:14px;right:20px;display:flex;gap:6px;}
@@ -291,12 +291,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 @keyframes fadeIn{to{opacity:1}}
 .intro-eyebrow{font-size:11px;letter-spacing:5px;color:var(--accent2);text-transform:uppercase;margin-bottom:20px;font-weight:500;animation:slideDown 0.6s ease 0.8s both;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
-.intro-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,15vw,140px);letter-spacing:12px;line-height:1;background:linear-gradient(135deg,#e8e8f0 0%,#a855f7 40%,#7c3aed 70%,#4f46e5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 40px rgba(124,58,237,0.5));animation:logoReveal 1s cubic-bezier(0.16,1,0.3,1) 0.6s both;}
+.intro-logo{font-family:Bebas Neue,sans-serif;font-size:clamp(72px,15vw,140px);letter-spacing:12px;line-height:1;background:linear-gradient(135deg,#e8e8f0 0%,#a855f7 40%,#7c3aed 70%,#4f46e5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 40px rgba(124,58,237,0.5));animation:logoReveal 1s cubic-bezier(0.16,1,0.3,1) 0.6s both;}
 @keyframes logoReveal{from{opacity:0;transform:scaleX(0.6) translateY(20px);letter-spacing:32px}to{opacity:1;transform:scaleX(1) translateY(0);letter-spacing:12px}}
 .intro-sub{font-size:13px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:12px;animation:slideDown 0.6s ease 1s both;}
 .intro-divider{width:1px;height:48px;background:linear-gradient(to bottom,transparent,var(--accent),transparent);margin:32px 0;animation:growLine 0.6s ease 1.2s both;}
 @keyframes growLine{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
-.intro-enter-btn{position:relative;background:none;border:1px solid rgba(124,58,237,0.5);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:6px;padding:16px 48px;border-radius:4px;cursor:pointer;overflow:hidden;transition:border-color 0.3s,color 0.3s;animation:btnReveal 0.6s ease 1.4s both;}
+.intro-enter-btn{position:relative;background:none;border:1px solid rgba(124,58,237,0.5);color:var(--text);font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:6px;padding:16px 48px;border-radius:4px;cursor:pointer;overflow:hidden;transition:border-color 0.3s,color 0.3s;animation:btnReveal 0.6s ease 1.4s both;}
 @keyframes btnReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .intro-enter-btn:hover{border-color:var(--accent2);color:var(--accent2);}
 .intro-hint{margin-top:16px;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;animation:pulse 2s ease-in-out 2s infinite;}
@@ -524,9 +524,9 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 .stat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
 .stat-row:last-child{border-bottom:none;}
 .stat-label{font-size:13px;color:var(--muted);}
-.stat-val{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--accent2);}
+.stat-val{font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px;color:var(--accent2);}
 .streak-display{text-align:center;padding:12px 0;}
-.streak-num{font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:2px;color:var(--accent2);line-height:1;}
+.streak-num{font-family:Bebas Neue,sans-serif;font-size:64px;letter-spacing:2px;color:var(--accent2);line-height:1;}
 .streak-label{font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
 .genre-bar-wrap{margin-bottom:10px;}
 .genre-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px;}
@@ -550,7 +550,7 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 .rating-stars { color:#f59e0b; letter-spacing:1px; font-size:13px; }
 .detail-stats-row { display:flex; gap:24px; margin-bottom:18px; }
 .detail-stat { text-align:center; }
-.detail-stat-val { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:1px; color:var(--text); }
+.detail-stat-val { font-family:Bebas Neue,sans-serif; font-size:22px; letter-spacing:1px; color:var(--text); }
 .detail-stat-label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
 .status-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
 .status-select { background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'Inter',sans-serif; font-size:12px; padding:8px 14px; border-radius:20px; cursor:pointer; appearance:none; outline:none; }
@@ -584,7 +584,7 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 
 /* ── READER TOOLBAR ── */
 .reader-toolbar { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); display:none; gap:6px; z-index:200; background:rgba(7,7,13,0.92); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.08); border-radius:40px; padding:8px 16px; box-shadow:0 8px 32px rgba(0,0,0,0.6); align-items:center; }
-.reader-tool-btn { background:none; border:none; color:rgba(255,255,255,0.5); cursor:pointer; padding:6px 10px; border-radius:20px; transition:all 0.2s; font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:1px; display:flex; align-items:center; gap:5px; }
+.reader-tool-btn { background:none; border:none; color:rgba(255,255,255,0.5); cursor:pointer; padding:6px 10px; border-radius:20px; transition:all 0.2s; font-family:Bebas Neue,sans-serif; font-size:13px; letter-spacing:1px; display:flex; align-items:center; gap:5px; }
 .reader-tool-btn:hover,.reader-tool-btn.active { color:white; background:rgba(255,255,255,0.1); }
 .reader-tool-btn.active { color:var(--accent2); }
 .reader-divider { width:1px; height:20px; background:rgba(255,255,255,0.1); }
@@ -611,7 +611,7 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 /* ── LIBRARY REDESIGN ── */
 .library-page { padding:20px 14px 20px; }
 .lib-header { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:10px; }
-.library-title { font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;line-height:1; }
+.library-title { font-family:Bebas Neue,sans-serif;font-size:30px;letter-spacing:2px;line-height:1; }
 .library-sub { font-size:12px;color:var(--muted);margin-top:2px; }
 
 .lib-icon-btn {
@@ -723,7 +723,7 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
 .top10-num {
   position:absolute;
   bottom:-10px;left:-8px;
-  font-family:'Bebas Neue',sans-serif;
+  font-family:Bebas Neue,sans-serif;
   font-size:96px;line-height:1;
   font-weight:900;
   color:var(--bg);
@@ -759,7 +759,7 @@ nav { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14p
   width:140px;height:200px;border-radius:12px;
   background:var(--surface2);display:flex;
   align-items:center;justify-content:center;
-  font-family:'Bebas Neue',sans-serif;font-size:12px;
+  font-family:Bebas Neue,sans-serif;font-size:12px;
   color:var(--muted);text-align:center;padding:8px;
 }
 .top10-info {
@@ -1327,12 +1327,12 @@ nav::before {
         <img id="featured-cover" src="" alt="" style="height:160px;width:110px;object-fit:cover;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.6);flex-shrink:0">
         <div style="flex:1;overflow:hidden">
           <div style="font-size:10px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;margin-bottom:8px;font-weight:600">⚡ Featured Manhwa</div>
-          <div id="featured-title" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,5vw,36px);letter-spacing:1px;line-height:1;margin-bottom:10px;color:#fff"></div>
+          <div id="featured-title" style="font-family:Bebas Neue,sans-serif;font-size:clamp(24px,5vw,36px);letter-spacing:1px;line-height:1;margin-bottom:10px;color:#fff"></div>
           <div id="featured-desc" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:14px"></div>
           <div id="featured-tags" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
       </div>
-      <div style="position:absolute;bottom:14px;right:16px;background:var(--accent);color:white;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;padding:8px 20px;border-radius:20px">READ NOW</div>
+      <div style="position:absolute;bottom:14px;right:16px;background:var(--accent);color:white;font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:2px;padding:8px 20px;border-radius:20px">READ NOW</div>
     </div>
   </div>
   <!-- TOP 10 -->
@@ -1369,9 +1369,9 @@ nav::before {
       
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none">
-      <button class="pop-period-btn active" onclick="setPopularPeriod('all',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:var(--manga-red);color:white;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">ALL TIME</button>
-      <button class="pop-period-btn" onclick="setPopularPeriod('month',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS MONTH</button>
-      <button class="pop-period-btn" onclick="setPopularPeriod('week',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS WEEK</button>
+      <button class="pop-period-btn active" onclick="setPopularPeriod('all',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:var(--manga-red);color:white;font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">ALL TIME</button>
+      <button class="pop-period-btn" onclick="setPopularPeriod('month',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS MONTH</button>
+      <button class="pop-period-btn" onclick="setPopularPeriod('week',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS WEEK</button>
     </div>
     <div id="home-active-filters" class="active-filters"></div>
     <div id="popular-grid" class="manga-grid"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
@@ -1398,7 +1398,7 @@ nav::before {
     <!-- Header row: back + title -->
     <div class="search-page-header">
       <button class="search-back-btn" onclick="goBack()">←</button>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px">Search</div>
+      <div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:2px">Search</div>
     </div>
 
     <!-- Search input full width -->
@@ -1497,10 +1497,10 @@ nav::before {
     </div>
 
     <div style="display:flex;gap:0;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none">
-    <button class="lib-filter-tab active" data-filter="all" onclick="renderLibrary('all')" style="flex:1;padding:8px 4px;background:rgba(230,57,70,0.1);border:1px solid var(--manga-red);color:var(--manga-red);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">ALL</button>
-    <button class="lib-filter-tab" data-filter="manhwa" onclick="renderLibrary('manhwa')" style="flex:1;padding:8px 4px;background:transparent;border:1px solid var(--border);border-left:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">MANHWA</button>
-    <button class="lib-filter-tab" data-filter="manga" onclick="renderLibrary('manga')" style="flex:1;padding:8px 4px;background:transparent;border:1px solid var(--border);border-left:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">MANGA</button>
-    <button class="lib-filter-tab" data-filter="manhua" onclick="renderLibrary('manhua')" style="flex:1;padding:8px 4px;background:transparent;border:1px solid var(--border);border-left:none;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">MANHUA</button>
+    <button class="lib-filter-tab active" data-filter="all" onclick="renderLibrary('all')" style="flex:1;padding:8px 4px;background:rgba(230,57,70,0.1);border:1px solid var(--manga-red);color:var(--manga-red);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">ALL</button>
+    <button class="lib-filter-tab" data-filter="manhwa" onclick="renderLibrary('manhwa')" style="flex:1;padding:8px 4px;background:transparent;border:1px solid var(--border);border-left:none;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">MANHWA</button>
+    <button class="lib-filter-tab" data-filter="manga" onclick="renderLibrary('manga')" style="flex:1;padding:8px 4px;background:transparent;border:1px solid var(--border);border-left:none;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">MANGA</button>
+    <button class="lib-filter-tab" data-filter="manhua" onclick="renderLibrary('manhua')" style="flex:1;padding:8px 4px;background:transparent;border:1px solid var(--border);border-left:none;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">MANHUA</button>
   <div id="library-grid" style="padding:0 16px"></div>
   </div>
 </div>
@@ -1511,7 +1511,7 @@ nav::before {
 <div id="page-lists" class="page">
   <div class="lists-page">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px">My Lists</div>
+      <div style="font-family:Bebas Neue,sans-serif;font-size:32px;letter-spacing:2px">My Lists</div>
       <button class="create-list-btn" onclick="showCreateListForm()">+ New List</button>
     </div>
     <div id="create-list-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
@@ -1521,6 +1521,31 @@ nav::before {
         <button class="back-btn" onclick="hideCreateListForm()">Cancel</button>
       </div>
     </div>
+
+    <!-- ═══ SCANLATION URL INPUT ═══ -->
+    <div style="margin-bottom:24px">
+      <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px">📎 ADD FROM EXTERNAL SITE</div>
+      <div style="background:var(--surface);border:1px solid var(--border);padding:16px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Paste a manga URL from Asura Scans, Bato.to, Flame Comics, or similar sites</div>
+        <div style="display:flex;gap:8px">
+          <input id="scanlation-url-input" type="url" placeholder="https://asuracomic.net/series/..." 
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-size:13px;outline:none;min-width:0"
+            onkeydown="if(event.key==='Enter')addScanlationUrl()">
+          <button onclick="addScanlationUrl()" 
+            style="background:var(--manga-red);border:none;color:white;padding:10px 16px;font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;white-space:nowrap;touch-action:manipulation">
+            ADD
+          </button>
+        </div>
+        <div id="scanlation-url-status" style="margin-top:8px;font-size:12px;color:var(--muted);min-height:16px"></div>
+      </div>
+    </div>
+
+    <!-- Saved external titles -->
+    <div id="external-titles-section" style="display:none;margin-bottom:24px">
+      <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px">🌐 EXTERNAL TITLES</div>
+      <div id="external-titles-grid" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
     <div id="lists-container"></div>
   </div>
 </div>
@@ -1577,12 +1602,12 @@ nav::before {
   </div>
 
   <!-- % badge top-right -->
-  <div id="reader-pct-badge" style="position:fixed;top:8px;right:12px;z-index:998;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);color:white;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;padding:3px 10px;border-radius:12px;opacity:0;transition:opacity 0.3s;pointer-events:none">0%</div>
+  <div id="reader-pct-badge" style="position:fixed;top:8px;right:12px;z-index:998;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);color:white;font-family:Bebas Neue,sans-serif;font-size:13px;letter-spacing:2px;padding:3px 10px;border-radius:12px;opacity:0;transition:opacity 0.3s;pointer-events:none">0%</div>
 
   <!-- Sliding header — visible on double tap -->
   <div id="reader-header-ui" class="reader-header-ui">
-    <button class="back-btn" onclick="goBack()" style="background:rgba(0,0,0,0.55);border:none;color:white;padding:8px 16px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;border-radius:20px;display:flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent">← BACK</button>
-    <div id="reader-title" style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:white;text-align:center;flex:1;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+    <button class="back-btn" onclick="goBack()" style="background:rgba(0,0,0,0.55);border:none;color:white;padding:8px 16px;font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;border-radius:20px;display:flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent">← BACK</button>
+    <div id="reader-title" style="font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:1px;color:white;text-align:center;flex:1;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
     <button onclick="openReaderSettings()" style="background:rgba(0,0,0,0.55);border:none;color:white;width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent">⚙</button>
   </div>
 
@@ -1608,14 +1633,14 @@ nav::before {
     <div style="background:#0f0d0b;border:1px solid rgba(230,57,70,0.25);width:100%;max-width:340px;overflow:hidden">
       <!-- Header -->
       <div style="background:rgba(230,57,70,0.08);border-bottom:1px solid rgba(230,57,70,0.15);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;color:white">READER SETTINGS</div>
+        <div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:4px;color:white">READER SETTINGS</div>
         <button onclick="closeReaderSettings()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:white;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;border-radius:10px;touch-action:manipulation;-webkit-tap-highlight-color:transparent">✕</button>
       </div>
       <div style="padding:16px 20px;display:flex;flex-direction:column;gap:0">
         <!-- Long Strip -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">☰ LONG STRIP</div>
+            <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:white">☰ LONG STRIP</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Continuous scroll for manhwa</div>
           </div>
           <div class="toggle" id="rs-strip-toggle" onclick="readerToggleLongStrip()"></div>
@@ -1623,7 +1648,7 @@ nav::before {
         <!-- Night Mode -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">🌙 NIGHT MODE</div>
+            <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:white">🌙 NIGHT MODE</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Dim overlay for dark rooms</div>
           </div>
           <div class="toggle" id="rs-night-toggle" onclick="readerToggleNight()"></div>
@@ -1631,7 +1656,7 @@ nav::before {
         <!-- Performance -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">⚡ PERFORMANCE</div>
+            <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:white">⚡ PERFORMANCE</div>
             <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">Lower quality, faster loading</div>
           </div>
           <div class="toggle" id="rs-perf-toggle" onclick="toggleReaderPerf()"></div>
@@ -1640,9 +1665,9 @@ nav::before {
         <div style="padding:14px 0">
           <div style="font-size:10px;letter-spacing:3px;color:#e63946;margin-bottom:10px;font-family:'Bebas Neue',sans-serif">SHOW CONTROLS ON</div>
           <div style="display:flex;gap:8px">
-            <button class="rs-mode-btn" data-mode="double" onclick="setReaderNavMode('double')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">👆👆<br>DOUBLE TAP</button>
-            <button class="rs-mode-btn" data-mode="single" onclick="setReaderNavMode('single')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">👆<br>SINGLE TAP</button>
-            <button class="rs-mode-btn" data-mode="always" onclick="setReaderNavMode('always')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">📌<br>ALWAYS</button>
+            <button class="rs-mode-btn" data-mode="double" onclick="setReaderNavMode('double')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">👆👆<br>DOUBLE TAP</button>
+            <button class="rs-mode-btn" data-mode="single" onclick="setReaderNavMode('single')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">👆<br>SINGLE TAP</button>
+            <button class="rs-mode-btn" data-mode="always" onclick="setReaderNavMode('always')" style="flex:1;padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;color:rgba(255,255,255,0.5);touch-action:manipulation">📌<br>ALWAYS</button>
           </div>
         </div>
         <!-- Hint -->
@@ -1664,19 +1689,19 @@ nav::before {
     <div style="position:absolute;top:0;left:0;width:4px;height:100%;background:var(--manga-red)"></div>
     <div style="padding-left:12px">
       <div style="font-size:9px;letter-spacing:4px;color:var(--manga-red);margin-bottom:4px">READING PASSPORT</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:white;line-height:1">LYEIUNS</div>
+      <div style="font-family:Bebas Neue,sans-serif;font-size:28px;letter-spacing:3px;color:white;line-height:1">LYEIUNS</div>
       <div style="font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:2px">MANGA · MANHWA · MANHUA</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px">
         <div style="text-align:center">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--manga-red);line-height:1" id="pp-chapters">0</div>
+          <div style="font-family:Bebas Neue,sans-serif;font-size:32px;color:var(--manga-red);line-height:1" id="pp-chapters">0</div>
           <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px">CHAPTERS</div>
         </div>
         <div style="text-align:center;border-left:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08)">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:white;line-height:1" id="pp-library">0</div>
+          <div style="font-family:Bebas Neue,sans-serif;font-size:32px;color:white;line-height:1" id="pp-library">0</div>
           <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px">SAVED</div>
         </div>
         <div style="text-align:center">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:white;line-height:1" id="pp-streak">0</div>
+          <div style="font-family:Bebas Neue,sans-serif;font-size:32px;color:white;line-height:1" id="pp-streak">0</div>
           <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px">DAY STREAK</div>
         </div>
       </div>
@@ -1686,18 +1711,18 @@ nav::before {
   <div style="margin:0 16px 16px;background:var(--surface);border:1px solid var(--border);padding:16px;display:flex;align-items:center;gap:16px">
     <div style="font-size:32px">⏱️</div>
     <div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:white" id="pp-time">0 HRS</div>
+      <div style="font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;color:white" id="pp-time">0 HRS</div>
       <div style="font-size:11px;color:var(--muted);margin-top:2px">Estimated reading time</div>
     </div>
   </div>
   <!-- GENRE DNA -->
   <div style="margin:0 16px 16px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:3px;color:var(--manga-red);margin-bottom:12px">GENRE DNA</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:3px;color:var(--manga-red);margin-bottom:12px">GENRE DNA</div>
     <div id="pp-genres"><div style="color:var(--muted);font-size:12px">Save manga to see your genre breakdown</div></div>
   </div>
   <!-- RECENTLY READ -->
   <div style="margin:0 16px">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:3px;color:var(--manga-red);margin-bottom:12px">RECENTLY READ</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:3px;color:var(--manga-red);margin-bottom:12px">RECENTLY READ</div>
     <div id="pp-recent"><div style="color:var(--muted);font-size:12px">No reading history yet</div></div>
   </div>
 <div></div></div>
@@ -1705,7 +1730,7 @@ nav::before {
 <div id="page-lists" class="page">
   <div class="lists-page">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px">My Lists</div>
+      <div style="font-family:Bebas Neue,sans-serif;font-size:32px;letter-spacing:2px">My Lists</div>
       <button class="create-list-btn" onclick="showCreateListForm()">+ New List</button>
     </div>
     <div id="create-list-form" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
@@ -1715,6 +1740,31 @@ nav::before {
         <button class="back-btn" onclick="hideCreateListForm()">Cancel</button>
       </div>
     </div>
+
+    <!-- ═══ SCANLATION URL INPUT ═══ -->
+    <div style="margin-bottom:24px">
+      <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px">📎 ADD FROM EXTERNAL SITE</div>
+      <div style="background:var(--surface);border:1px solid var(--border);padding:16px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Paste a manga URL from Asura Scans, Bato.to, Flame Comics, or similar sites</div>
+        <div style="display:flex;gap:8px">
+          <input id="scanlation-url-input" type="url" placeholder="https://asuracomic.net/series/..." 
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-size:13px;outline:none;min-width:0"
+            onkeydown="if(event.key==='Enter')addScanlationUrl()">
+          <button onclick="addScanlationUrl()" 
+            style="background:var(--manga-red);border:none;color:white;padding:10px 16px;font-family:Bebas Neue,sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;white-space:nowrap;touch-action:manipulation">
+            ADD
+          </button>
+        </div>
+        <div id="scanlation-url-status" style="margin-top:8px;font-size:12px;color:var(--muted);min-height:16px"></div>
+      </div>
+    </div>
+
+    <!-- Saved external titles -->
+    <div id="external-titles-section" style="display:none;margin-bottom:24px">
+      <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:3px;color:var(--manga-red);margin-bottom:10px">🌐 EXTERNAL TITLES</div>
+      <div id="external-titles-grid" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
     <div id="lists-container"></div>
   </div>
 </div>
@@ -1889,7 +1939,7 @@ nav::before {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
       </div>
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:white">Add to Home Screen</div>
+        <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:white">Add to Home Screen</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:1px">Install LYEIUNS as an app</div>
       </div>
     </div>
@@ -2521,6 +2571,7 @@ function renderLibrary(filter) {
 function removeFromLibrary(id){S.library=S.library.filter(function(m){return m.id!==id;});save('lyeiuns-library',S.library);renderLibrary();toast('Removed from library');}
 
 function renderLists() {
+  renderExternalTitles();
   const el=document.getElementById('lists-container');
   if(!S.custom_lists.length){el.innerHTML=getChibiEmpty('sleep','No Lists Yet','Create a list to organise your reading');return;}
   el.innerHTML=S.custom_lists.map((l,i)=>`
@@ -4004,6 +4055,301 @@ window.addEventListener('scroll', function() {
 }, { passive: true });
 
 
+
+
+// ══ SCANLATION URL MANAGER ══
+// Supported sites and their patterns
+const SCANLATION_SITES = {
+  'asuracomic.net':   { name: 'Asura Scans',   type: 'asura' },
+  'asurascans.com':   { name: 'Asura Scans',   type: 'asura' },
+  'bato.to':          { name: 'Bato.to',        type: 'bato'  },
+  'battwo.com':       { name: 'Bato.to',        type: 'bato'  },
+  'flamecomics.me':   { name: 'Flame Comics',   type: 'flame' },
+  'flamecomics.xyz':  { name: 'Flame Comics',   type: 'flame' },
+  'reaperscans.com':  { name: 'Reaper Scans',   type: 'reaper'},
+  'luminousscans.com':{ name: 'Luminous Scans', type: 'generic'},
+  'mangabuddy.com':   { name: 'MangaBuddy',     type: 'generic'},
+};
+
+function detectSite(url) {
+  try {
+    var host = new URL(url).hostname.replace('www.','');
+    return SCANLATION_SITES[host] || { name: host, type: 'generic' };
+  } catch(e) { return null; }
+}
+
+async function addScanlationUrl() {
+  var input = document.getElementById('scanlation-url-input');
+  var status = document.getElementById('scanlation-url-status');
+  var url = (input ? input.value : '').trim();
+  
+  if(!url) { if(status) status.textContent = '⚠️ Please enter a URL'; return; }
+  if(!url.startsWith('http')) { if(status) status.textContent = '⚠️ Must be a full URL starting with https://'; return; }
+  
+  var site = detectSite(url);
+  if(!status) return;
+  status.style.color = 'var(--muted)';
+  status.textContent = '⏳ Fetching manga info...';
+
+  try {
+    // Fetch the page through our CF proxy
+    var proxyUrl = CF_PROXY + '/scrape?url=' + encodeURIComponent(url);
+    var res = await fetch(proxyUrl);
+    if(!res.ok) throw new Error('Proxy returned ' + res.status);
+    var html = await res.text();
+    
+    // Parse title and cover from the HTML
+    var parsed = parseScanlationPage(html, url, site);
+    if(!parsed) throw new Error('Could not parse page - site may not be supported yet');
+    
+    // Save to external titles in localStorage
+    var externals = load('lyeiuns-external', []);
+    // Check if already added
+    if(externals.find(function(e){ return e.url === url; })) {
+      status.style.color = 'orange';
+      status.textContent = '⚠️ Already added!';
+      return;
+    }
+    externals.unshift({ url, title: parsed.title, cover: parsed.cover, site: site.name, chapters: parsed.chapters, addedAt: Date.now() });
+    save('lyeiuns-external', externals);
+    
+    status.style.color = '#4ade80';
+    status.textContent = '✅ Added: ' + parsed.title + ' (' + parsed.chapters.length + ' chapters found)';
+    if(input) input.value = '';
+    renderExternalTitles();
+  } catch(e) {
+    status.style.color = '#e63946';
+    status.textContent = '❌ ' + e.message + '. Try copying the exact manga page URL.';
+  }
+}
+
+function parseScanlationPage(html, sourceUrl, site) {
+  // Use DOMParser to extract info from fetched HTML
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(html, 'text/html');
+  
+  // Title - try common selectors across scanlation sites
+  var title = '';
+  var titleSelectors = ['h1.entry-title','h1.manga-title','.seriestuheader h1','.post-title h1','h1[class*="title"]','h1[class*="manga"]','h1[class*="series"]','h1','og:title'];
+  for(var sel of titleSelectors) {
+    var el = sel.startsWith('og:') 
+      ? doc.querySelector('meta[property="og:title"]')
+      : doc.querySelector(sel);
+    if(el) { 
+      title = sel.startsWith('og:') ? (el.getAttribute('content')||'') : el.textContent.trim();
+      if(title) break; 
+    }
+  }
+  
+  // Cover image
+  var cover = '';
+  var coverSelectors = ['meta[property="og:image"]','img.manga-cover','img.wp-post-image','.thumb img','.summary_image img','img[class*="cover"]'];
+  for(var csel of coverSelectors) {
+    var cel = doc.querySelector(csel);
+    if(cel) {
+      cover = cel.getAttribute('content') || cel.getAttribute('src') || cel.getAttribute('data-src') || '';
+      if(cover) break;
+    }
+  }
+  // Make cover absolute URL
+  if(cover && cover.startsWith('/')) {
+    try { cover = new URL(cover, sourceUrl).href; } catch(e) {}
+  }
+  
+  // Chapter list - try common patterns
+  var chapters = [];
+  var chSelectors = ['.wp-manga-chapter a','li.chapter a','.chapter-li a','.chapter-list a','a[href*="chapter"]','a[href*="ch-"]'];
+  for(var chSel of chSelectors) {
+    var links = doc.querySelectorAll(chSel);
+    if(links.length > 0) {
+      links.forEach(function(link) {
+        var href = link.getAttribute('href') || '';
+        if(href && href.startsWith('/')) { try { href = new URL(href, sourceUrl).href; } catch(e){} }
+        var chTitle = link.textContent.trim();
+        var numMatch = chTitle.match(/chapter\s*([\d.]+)/i) || href.match(/chapter[/-]([\d.]+)/i) || href.match(/ch[/-]([\d.]+)/i);
+        if(href && numMatch) {
+          chapters.push({ num: numMatch[1], title: chTitle, url: href });
+        }
+      });
+      if(chapters.length > 0) break;
+    }
+  }
+  
+  if(!title) return null;
+  return { title, cover, chapters };
+}
+
+function renderExternalTitles() {
+  var externals = load('lyeiuns-external', []);
+  var section = document.getElementById('external-titles-section');
+  var grid = document.getElementById('external-titles-grid');
+  if(!section || !grid) return;
+  
+  if(!externals.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  
+  grid.innerHTML = externals.map(function(ext, i) {
+    var coverHtml = ext.cover 
+      ? '<img src="' + CF_PROXY + '/img?url=' + encodeURIComponent(ext.cover) + '" style="width:56px;height:76px;object-fit:cover;flex-shrink:0" onerror="this.style.opacity=0">'
+      : '<div style="width:56px;height:76px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">📖</div>';
+    return '<div style="background:var(--surface);border:1px solid var(--border);padding:12px;display:flex;gap:12px;align-items:center">' +
+      coverHtml +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:9px;letter-spacing:1px;color:var(--manga-red);margin-bottom:3px">' + (ext.site||'External') + '</div>' +
+        '<div style="font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (ext.title||'Unknown') + '</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:3px">' + (ext.chapters ? ext.chapters.length : 0) + ' chapters</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">' +
+        '<button onclick="openExternalTitle(' + i + ')" style="background:var(--manga-red);border:none;color:white;padding:6px 12px;font-size:12px;letter-spacing:1px;cursor:pointer;touch-action:manipulation">READ</button>' +
+        '<button onclick="refreshExternalTitle(' + i + ')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;touch-action:manipulation">↺ SYNC</button>' +
+        '<button onclick="removeExternalTitle(' + i + ')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;touch-action:manipulation">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openExternalTitle(idx) {
+  var externals = load('lyeiuns-external', []);
+  var ext = externals[idx];
+  if(!ext || !ext.chapters || !ext.chapters.length) { toast('No chapters found'); return; }
+  
+  // Build a fake manga object for the reader
+  S.currentManga = {
+    id: 'external_' + idx,
+    _external: true,
+    _extData: ext,
+    attributes: { title: { en: ext.title }, tags: [], altTitles: [] },
+    relationships: ext.cover ? [{ type: 'cover_art', _directUrl: ext.cover }] : []
+  };
+  
+  // Build chapter list (newest first)
+  S.currentChapters = ext.chapters.slice().reverse().map(function(ch, i) {
+    return {
+      id: 'ext_ch_' + i,
+      _externalUrl: ch.url,
+      _source: 'external',
+      attributes: { chapter: ch.num, title: ch.title || ('Chapter ' + ch.num), publishAt: new Date().toISOString() }
+    };
+  });
+  
+  navigate('detail');
+  var coverImg = document.getElementById('detail-cover-img');
+  var backdrop = document.getElementById('detail-backdrop');
+  if(coverImg) coverImg.src = ext.cover ? CF_PROXY + '/img?url=' + encodeURIComponent(ext.cover) : '';
+  if(backdrop && ext.cover) backdrop.style.backgroundImage = 'url(' + CF_PROXY + '/img?url=' + encodeURIComponent(ext.cover) + ')';
+  var titleEl = document.getElementById('detail-title');
+  if(titleEl) titleEl.textContent = ext.title || 'Unknown';
+  var typeEl = document.getElementById('detail-type');
+  if(typeEl) typeEl.textContent = ext.site || 'External';
+  var descEl = document.getElementById('detail-desc');
+  if(descEl) descEl.textContent = 'From ' + (ext.site || 'external site') + ' · ' + ext.chapters.length + ' chapters';
+  var metaEl = document.getElementById('detail-meta');
+  if(metaEl) metaEl.innerHTML = '<span class="meta-pill" style="border-color:var(--manga-red);color:var(--manga-red)">🌐 External</span>';
+  var chList = document.getElementById('chapter-list');
+  if(chList) {
+    chList.innerHTML = S.currentChapters.map(function(ch, i) {
+      return '<div class="chapter-item' + (isChRead(ch.id) ? ' read' : '') + '" onclick="openChapter(' + JSON.stringify(ch.id) + ',' + JSON.stringify(ch.attributes.chapter) + ',' + i + ')">' +
+        '<div class="chapter-num">CH ' + ch.attributes.chapter + '</div>' +
+        '<div class="chapter-name">' + (ch.attributes.title || '') + '</div>' +
+        '<div class="chapter-date"></div>' +
+        '<div class="ch-read-dot"></div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+async function openExternalChapter(chapterId, chapterNum, idx) {
+  S.currentChIdx = idx;
+  navigate('reader');
+  var ch = S.currentChapters[idx];
+  if(!ch || !ch._externalUrl) { toast('Chapter URL not found'); return; }
+  
+  var titleEl = document.getElementById('reader-title');
+  var chInfo = document.getElementById('reader-ch-info');
+  var prevBtn = document.getElementById('prev-btn');
+  var nextBtn = document.getElementById('next-btn');
+  var imgContainer = document.getElementById('reader-images');
+  
+  if(titleEl) titleEl.textContent = (S.currentManga ? getTitle(S.currentManga) : '') + ' — Ch. ' + chapterNum;
+  if(chInfo) chInfo.textContent = 'CH ' + chapterNum;
+  if(prevBtn) prevBtn.disabled = idx >= S.currentChapters.length - 1;
+  if(nextBtn) nextBtn.disabled = idx <= 0;
+  if(imgContainer) imgContainer.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading pages...</span></div>';
+
+  markChRead(chapterId);
+
+  try {
+    // Fetch the chapter page through our proxy
+    var proxyUrl = CF_PROXY + '/scrape?url=' + encodeURIComponent(ch._externalUrl);
+    var res = await fetch(proxyUrl);
+    if(!res.ok) throw new Error('Failed to fetch chapter');
+    var html = await res.text();
+    
+    // Parse images from chapter page
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(html, 'text/html');
+    var pages = [];
+    
+    // Common image selectors across scanlation sites
+    var imgSelectors = ['.reading-content img','.chapter-img img','#readerarea img','.page-break img','.wp-manga-chapter-img','.reader-area img','img[class*="page"]','img[data-src]'];
+    for(var sel of imgSelectors) {
+      var imgs = doc.querySelectorAll(sel);
+      if(imgs.length > 1) {
+        imgs.forEach(function(img) {
+          var src = img.getAttribute('data-lazy-src') || img.getAttribute('data-src') || img.getAttribute('src') || '';
+          if(src && src.match(/\.(jpg|jpeg|png|webp|gif)/i)) pages.push(src);
+        });
+        if(pages.length > 0) break;
+      }
+    }
+    
+    if(!pages.length) throw new Error('No images found on chapter page');
+    
+    if(imgContainer) {
+      imgContainer.innerHTML = pages.map(function(src) {
+        var proxied = CF_PROXY + '/img?url=' + encodeURIComponent(src);
+        return '<img src="' + proxied + '" alt="" loading="lazy" style="width:100%;display:block" onerror="this.style.opacity=0.3">';
+      }).join('');
+    }
+    window.scrollTo(0, 0);
+  } catch(e) {
+    if(imgContainer) imgContainer.innerHTML = '<div class="empty"><div class="empty-icon">😵</div><h3>Failed to load</h3><p>' + e.message + '</p><p style="margin-top:8px;font-size:11px;color:var(--muted)">Some sites block scraping. Try opening directly: <a href="' + ch._externalUrl + '" target="_blank" style="color:var(--manga-red)">' + ch._externalUrl + '</a></p></div>';
+  }
+}
+
+async function refreshExternalTitle(idx) {
+  var externals = load('lyeiuns-external', []);
+  var ext = externals[idx];
+  if(!ext) return;
+  var status = document.getElementById('scanlation-url-status');
+  if(status) { status.style.color = 'var(--muted)'; status.textContent = '⏳ Refreshing ' + ext.title + '...'; }
+  try {
+    var proxyUrl = CF_PROXY + '/scrape?url=' + encodeURIComponent(ext.url);
+    var res = await fetch(proxyUrl);
+    var html = await res.text();
+    var site = detectSite(ext.url);
+    var parsed = parseScanlationPage(html, ext.url, site);
+    if(parsed && parsed.chapters.length) {
+      externals[idx].chapters = parsed.chapters;
+      externals[idx].title = parsed.title || ext.title;
+      save('lyeiuns-external', externals);
+      if(status) { status.style.color = '#4ade80'; status.textContent = '✅ Synced! ' + parsed.chapters.length + ' chapters'; }
+      renderExternalTitles();
+    } else {
+      if(status) { status.style.color = 'orange'; status.textContent = '⚠️ No new chapters found'; }
+    }
+  } catch(e) {
+    if(status) { status.style.color = '#e63946'; status.textContent = '❌ Sync failed: ' + e.message; }
+  }
+}
+
+function removeExternalTitle(idx) {
+  var externals = load('lyeiuns-external', []);
+  externals.splice(idx, 1);
+  save('lyeiuns-external', externals);
+  renderExternalTitles();
+  toast('Removed');
+}
 
 // ═══════════════════════════════════════════
 // INIT
