@@ -1506,7 +1506,7 @@ nav::before {
 </div>
 
 
-</div></div>
+</div>
 <!-- LISTS -->
 <div id="page-lists" class="page">
   <div class="lists-page">
@@ -1642,47 +1642,6 @@ nav::before {
 </div>
 
 <!-- DETAIL -->
-<div id="page-detail" class="page">
-  <div id="detail-hero" class="detail-hero">
-    <div id="detail-backdrop" class="detail-backdrop"></div>
-    <div class="detail-content">
-      <div class="detail-cover" style="position:relative">
-        <img id="detail-cover-img" src="" alt="">
-        <div id="detail-status-badge" class="status-badge" style="display:none"></div>
-      </div>
-      <div class="detail-info">
-        <div id="detail-type" class="detail-type"></div>
-        <div id="detail-title" class="detail-title"></div>
-        <div id="detail-author" class="detail-author"></div>
-        <div id="detail-meta" class="detail-meta"></div>
-        <div id="detail-stats" class="detail-stats-row"></div>
-        <div id="detail-desc" class="detail-desc"></div>
-        <div id="detail-tags" class="tags"></div>
-        <div class="status-actions">
-          <select class="status-select" id="reading-status-select" onchange="setReadingStatus(this.value)">
-            <option value="">+ Add to list</option>
-            <option value="reading">📖 Reading</option>
-            <option value="completed">✅ Completed</option>
-            <option value="on-hold">⏸ On Hold</option>
-            <option value="dropped">❌ Dropped</option>
-            <option value="plan">📋 Plan to Read</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="read-btn" onclick="readFirst()">▶ Read Now</button>
-          <button class="back-btn" onclick="addToLibrary()">+ Save</button>
-          <button class="back-btn" onclick="addToList()">+ List</button>
-          <button class="back-btn" onclick="shareTitle()">↗ Share</button>
-          <button class="back-btn" onclick="goBack()">← Back</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="chapters-section">
-    <div class="section-title" style="margin-bottom:16px">Chapters</div>
-    <div id="chapter-list" class="chapter-list"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
-  </div>
-</div>
 
 <!-- READER -->
 <div id="page-reader" class="page">
@@ -1695,40 +1654,6 @@ nav::before {
 
 
 <!-- PROFILE -->
-<div id="page-profile" class="page">
-  <div class="stats-page">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:24px">Profile</div>
-    <div class="stats-card">
-      <div class="stats-card-title">Reading Stats</div>
-      <div class="stat-row"><span class="stat-label">Chapters Read</span><span class="stat-val" id="stat-chapters">0</span></div>
-      <div class="stat-row"><span class="stat-label">Titles in Library</span><span class="stat-val" id="stat-library">0</span></div>
-      <div class="stat-row"><span class="stat-label">Custom Lists</span><span class="stat-val" id="stat-lists">0</span></div>
-      <div class="stat-row"><span class="stat-label">Titles Explored</span><span class="stat-val" id="stat-explored">0</span></div>
-    </div>
-    <div class="stats-card">
-      <div class="stats-card-title">Reading Streak</div>
-      <div class="streak-display">
-        <div class="streak-num" id="stat-streak">0</div>
-        <div class="streak-label">Days in a row 🔥</div>
-      </div>
-    </div>
-    <div class="stats-card">
-      <div class="stats-card-title">Top Genres</div>
-      <div id="genre-bars"><div style="color:var(--muted);font-size:13px">Read some manga first!</div></div>
-    </div>
-    <div class="stats-card">
-      <div class="stats-card-title">Night Reading</div>
-      <div class="stat-row">
-        <div><div class="stat-label">Dim Overlay</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Easier on the eyes</div></div>
-        <div class="toggle" id="night-toggle" onclick="toggleNight()"></div>
-      </div>
-      <div class="stat-row" style="flex-direction:column;align-items:flex-start;gap:10px">
-        <div class="stat-label">Brightness <span id="brightness-val" style="color:var(--accent2)">0%</span></div>
-        <input type="range" min="0" max="80" value="0" id="brightness-slider" oninput="setBrightness(this.value)" style="width:100%">
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- FILTER MODAL -->
 <div class="modal-overlay" id="filter-modal" onclick="if(event.target===this)closeFilterModal()">
@@ -1830,12 +1755,6 @@ nav::before {
 <div class="night-overlay" id="night-overlay"></div>
 <div class="page-counter" id="page-counter"></div>
 <div class="reader-progress-bar" id="reader-progress" style="width:0;display:none"></div>
-<div class="reader-toolbar" id="reader-toolbar">
-  <button class="reader-tool-btn active" id="tool-scroll" onclick="setReaderMode('scroll')">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-    Scroll
-  </button>
-  <div class="reader-divider"></div>
   <button class="reader-tool-btn" id="tool-strip" onclick="setReaderMode('strip')">
     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="5" rx="1"/></svg>
     Long Strip
