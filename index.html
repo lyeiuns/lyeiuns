@@ -2033,6 +2033,7 @@ const PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api'; // CF Worke
 // After deploying your worker, replace YOUR-NAME below with your CF subdomain
 // e.g. 'https://lyeiuns-proxy.bob123.workers.dev'
 const CF_PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev';
+const CSAPI = 'https://comick-source-api.notaspider.dev';
 const USE_CF_PROXY = true; // Cloudflare Worker deployed ✅
 
 function proxyImg(url) {
@@ -2333,34 +2334,47 @@ function setPopularPeriod(period, el) {
 }
 
 async function loadPopular() {
-  const el=document.getElementById('popular-grid');
-  el.innerHTML='<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
+  const el = document.getElementById('popular-grid');
+  if(!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    let url = API + '/manga?limit=18&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&availableTranslatedLanguage[]=en';
-    
-    // Time period sorting
-    if(popularPeriod === 'week') {
-      const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
-      url += '&order[followedCount]=desc&updatedAtSince=' + since;
-    } else if(popularPeriod === 'month') {
-      const since = new Date(Date.now() - 30*24*60*60*1000).toISOString();
-      url += '&order[followedCount]=desc&updatedAtSince=' + since;
-    } else {
-      url += '&order[followedCount]=desc';
+    // Parallel: MangaDex + Comix trending
+    const [mdRes, cxRes] = await Promise.allSettled([
+      fetch(API + '/manga?limit=16&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive'),
+      fetch(CSAPI + '/api/frontpage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'comix', section: 'trending', limit: 12, days: 7 })
+      })
+    ]);
+
+    let html = '';
+
+    // MangaDex results
+    if(mdRes.status === 'fulfilled' && mdRes.value.ok) {
+      const data = await mdRes.value.json();
+      if(data.data && data.data.length) {
+        html += data.data.map(renderCard).join('');
+      }
     }
 
-    // Language filter (All/Manga/Manhwa/Manhua)
-    if(S.popularLang) url += '&originalLanguage[]=' + S.popularLang;
+    // Comix trending results
+    if(cxRes.status === 'fulfilled' && cxRes.value.ok) {
+      const cxData = await cxRes.value.json();
+      const items = cxData.section && cxData.section.items ? cxData.section.items : [];
+      html += items.map(function(item) {
+        const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+        const title = item.title || 'Unknown';
+        return '<div class="manga-card" onclick="openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(title) + ',' + JSON.stringify(cover) + ')">' +
+          '<div class="manga-cover" style="position:relative">' +
+          (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
+          '<div class="manga-badge">Comix</div>' +
+          '</div><div class="manga-info"><div class="manga-title">' + title + '</div>' +
+          '<div class="manga-sub">Ch. ' + (item.latestChapter || '?') + (item.rating ? ' · ⭐' + item.rating : '') + '</div></div></div>';
+      }).join('');
+    }
 
-    // Tag filters
-    S.homeFilters.tags.forEach(function(id){ url += '&includedTags[]=' + id; });
-
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('Status ' + res.status);
-    const data = await res.json();
-    el.innerHTML = data.data && data.data.length
-      ? data.data.map(renderCard).join('')
-      : '<div class="empty"><div class="empty-icon">😶</div><h3>No results</h3><p>Try different filters</p></div>';
+    el.innerHTML = html || '<div class="empty"><p>Failed to load</p></div>';
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Failed to load</p><button onclick="loadPopular()" style="margin-top:8px;padding:6px 16px;background:var(--accent);border:none;color:white;border-radius:8px;cursor:pointer;font-size:12px">↺ Retry</button></div>';
   }
@@ -2368,10 +2382,38 @@ async function loadPopular() {
 
 async function loadRecent() {
   try {
-    const res=await fetch(`${API}/manga?limit=12&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`);
-    const data=await res.json();
-    document.getElementById('recent-grid').innerHTML=data.data?.length?data.data.map(renderCard).join(''):'<div class="empty"><p>Nothing here</p></div>';
-  } catch(e){document.getElementById('recent-grid').innerHTML='<div class="empty"><p>Failed to load</p></div>';}
+    const [mdRes, cxRes] = await Promise.allSettled([
+      fetch(API + '/manga?limit=10&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive'),
+      fetch(CSAPI + '/api/frontpage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'comix', section: 'recently_added', limit: 10 })
+      })
+    ]);
+
+    let html = '';
+    if(mdRes.status === 'fulfilled' && mdRes.value.ok) {
+      const data = await mdRes.value.json();
+      if(data.data) html += data.data.map(renderCard).join('');
+    }
+    if(cxRes.status === 'fulfilled' && cxRes.value.ok) {
+      const cxData = await cxRes.value.json();
+      const items = cxData.section && cxData.section.items ? cxData.section.items : [];
+      html += items.map(function(item) {
+        const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+        const title = item.title || 'Unknown';
+        return '<div class="manga-card" onclick="openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(title) + ',' + JSON.stringify(cover) + ')">' +
+          '<div class="manga-cover">' +
+          (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
+          '<div class="manga-badge">Updated</div>' +
+          '</div><div class="manga-info"><div class="manga-title">' + title + '</div>' +
+          '<div class="manga-sub">Ch. ' + (item.latestChapter || '?') + '</div></div></div>';
+      }).join('');
+    }
+    document.getElementById('recent-grid').innerHTML = html || '<div class="empty"><p>Nothing here</p></div>';
+  } catch(e) {
+    document.getElementById('recent-grid').innerHTML = '<div class="empty"><p>Failed</p></div>';
+  }
 }
 
 function switchTab(lang,el) {
@@ -3351,67 +3393,67 @@ window.doSearch = async function(query) {
   document.getElementById('main-search').value = q;
   var el = document.getElementById('search-results');
   if(!el) return;
-  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Searching MangaDex + Comick...</span></div>';
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Searching all sources...</span></div>';
 
   try {
-    // Query both APIs in parallel
-    var [mdRes, comickRes] = await Promise.allSettled([
-      // MangaDex
-      fetch(API + '/manga?limit=20&title=' + encodeURIComponent(q) + '&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&order[followedCount]=desc'),
-      // Comick.io
-      fetch('https://api.comick.fun/v1.0/search?q=' + encodeURIComponent(q) + '&limit=20&page=1')
+    // Query MangaDex + CSAPI (all sources including comix.to) in parallel
+    const [mdRes, csRes] = await Promise.allSettled([
+      fetch(API + '/manga?limit=16&title=' + encodeURIComponent(q) + '&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&order[followedCount]=desc'),
+      fetch(CSAPI + '/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, source: 'all' })
+      })
     ]);
 
-    var mdItems = [];
-    var comickItems = [];
+    let html = '';
 
+    // MangaDex results with purple MD badge
     if(mdRes.status === 'fulfilled' && mdRes.value.ok) {
-      var mdData = await mdRes.value.json();
-      mdItems = mdData.data || [];
+      const data = await mdRes.value.json();
+      if(data.data && data.data.length) {
+        html += data.data.map(function(m) {
+          const cover = getCover(m), title = getTitle(m), type = getType(m);
+          return '<div class="manga-card" onclick="openDetail(' + JSON.stringify(m.id) + ')">' +
+            '<div class="manga-cover" style="position:relative">' +
+            (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
+            '<div class="manga-badge">' + type + '</div>' +
+            '<div style="position:absolute;bottom:4px;left:4px;background:rgba(124,58,237,0.9);color:white;font-size:8px;padding:2px 5px;letter-spacing:1px">MD</div>' +
+            '</div><div class="manga-info"><div class="manga-title">' + title + '</div>' +
+            '<div class="manga-sub">' + ((m.attributes && m.attributes.status) || '') + '</div></div></div>';
+        }).join('');
+      }
     }
 
-    if(comickRes.status === 'fulfilled' && comickRes.value.ok) {
-      var comickData = await comickRes.value.json();
-      comickItems = (comickData || []).filter(function(c){ return c && c.title; });
+    // CSAPI multi-source results
+    if(csRes.status === 'fulfilled' && csRes.value.ok) {
+      const csData = await csRes.value.json();
+      // CSAPI returns array of {source, results} objects
+      const allResults = Array.isArray(csData) ? csData : (csData.results ? [csData] : []);
+      allResults.forEach(function(sourceResult) {
+        const sourceName = sourceResult.source || 'Ext';
+        const badge = sourceName.substring(0,3).toUpperCase();
+        const results = sourceResult.results || [];
+        html += results.slice(0,6).map(function(item) {
+          const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+          const title = item.title || 'Unknown';
+          return '<div class="manga-card" onclick="openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(title) + ',' + JSON.stringify(cover) + ')">' +
+            '<div class="manga-cover" style="position:relative">' +
+            (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
+            '<div class="manga-badge">' + sourceName + '</div>' +
+            '<div style="position:absolute;bottom:4px;left:4px;background:rgba(230,57,70,0.9);color:white;font-size:8px;padding:2px 5px;letter-spacing:1px">' + badge + '</div>' +
+            '</div><div class="manga-info"><div class="manga-title">' + title + '</div>' +
+            '<div class="manga-sub">Ch. ' + (item.latestChapter || '?') + '</div></div></div>';
+        }).join('');
+      });
     }
 
-    if(!mdItems.length && !comickItems.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-icon">😶</div><h3>No results for "' + q + '"</h3><p>Try different keywords</p></div>';
-      return;
-    }
-
-    // Render MangaDex results
-    var mdHtml = mdItems.map(function(m) {
-      var cover = getCover(m), title = getTitle(m), type = getType(m);
-      return '<div class="manga-card" onclick="openDetail(' + JSON.stringify(m.id) + ')">' +
-        '<div class="manga-cover" style="position:relative">' +
-        (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
-        '<div class="manga-badge">' + type + '</div>' +
-        '<div style="position:absolute;bottom:4px;left:4px;background:rgba(124,58,237,0.85);color:white;font-size:8px;padding:2px 5px;letter-spacing:1px;font-family:Bebas Neue,sans-serif">MD</div>' +
-        '</div><div class="manga-info"><div class="manga-title">' + title + '</div><div class="manga-sub">' + (m.attributes && m.attributes.status || '') + '</div></div></div>';
-    }).join('');
-
-    // Render Comick results
-    var comickHtml = comickItems.map(function(c) {
-      var cover = c.cover_url ? (CF_PROXY + '/img?url=' + encodeURIComponent(c.cover_url)) : '';
-      var title = c.title || c.slug || 'Unknown';
-      var type = c.country === 'kr' ? 'Manhwa' : c.country === 'cn' ? 'Manhua' : 'Manga';
-      var slug = c.slug || c.hid || '';
-      return '<div class="manga-card" onclick="openComickFromSearch(' + JSON.stringify(slug) + ',' + JSON.stringify(title) + ',' + JSON.stringify(cover) + ')">' +
-        '<div class="manga-cover" style="position:relative">' +
-        (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
-        '<div class="manga-badge">' + type + '</div>' +
-        '<div style="position:absolute;bottom:4px;left:4px;background:rgba(230,57,70,0.85);color:white;font-size:8px;padding:2px 5px;letter-spacing:1px;font-family:Bebas Neue,sans-serif">CK</div>' +
-        '</div><div class="manga-info"><div class="manga-title">' + title + '</div><div class="manga-sub">' + (c.status === 1 ? 'Ongoing' : c.status === 2 ? 'Completed' : '') + '</div></div></div>';
-    }).join('');
-
-    // Interleave results: MD then Comick
-    el.innerHTML = (mdHtml || '') + (comickHtml || '');
-
+    el.innerHTML = html || '<div class="empty"><div class="empty-icon">😶</div><h3>No results for "' + q + '"</h3><p>Try different keywords</p></div>';
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Search failed: ' + e.message + '</p></div>';
   }
 }
+
 
 
 // ── PATCH loadPopular for dual source ────────────────────────────────────────
@@ -3459,17 +3501,41 @@ async function loadWeek() {
   const el = document.getElementById('week-grid');
   if(!el) return;
   try {
-    const res = await fetch(API + '/manga?limit=10&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive');
-    if(!res.ok) throw new Error('Status ' + res.status);
-    const data = await res.json();
-    if(!data.data || !data.data.length) {
-      el.innerHTML = getChibiEmpty('sleep', 'Nothing This Week', 'Check back soon');
-      return;
+    // Parallel: MangaDex latest + Comix latest_new
+    const [mdRes, cxRes] = await Promise.allSettled([
+      fetch(API + '/manga?limit=10&order[latestUploadedChapter]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive'),
+      fetch(CSAPI + '/api/frontpage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'comix', section: 'latest_new', limit: 10 })
+      })
+    ]);
+
+    let html = '';
+
+    if(mdRes.status === 'fulfilled' && mdRes.value.ok) {
+      const data = await mdRes.value.json();
+      if(data.data) html += data.data.map(renderCard).join('');
     }
-    el.innerHTML = data.data.map(renderCard).join('');
+
+    if(cxRes.status === 'fulfilled' && cxRes.value.ok) {
+      const cxData = await cxRes.value.json();
+      const items = cxData.section && cxData.section.items ? cxData.section.items : [];
+      html += items.map(function(item) {
+        const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+        const title = item.title || 'Unknown';
+        return '<div class="manga-card" onclick="openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(title) + ',' + JSON.stringify(cover) + ')">' +
+          '<div class="manga-cover" style="position:relative">' +
+          (cover ? '<img src="' + cover + '" alt="" loading="lazy">' : '<div class="manga-cover-placeholder">' + title + '</div>') +
+          '<div class="manga-badge">New</div>' +
+          '</div><div class="manga-info"><div class="manga-title">' + title + '</div>' +
+          '<div class="manga-sub">Ch. ' + (item.latestChapter || '?') + '</div></div></div>';
+      }).join('');
+    }
+
+    el.innerHTML = html || '<div class="empty"><p>Nothing this week</p></div>';
   } catch(e) {
-    el.innerHTML = getChibiEmpty('shrug', 'Failed to Load', 'Tap to retry') +
-      '<div style="text-align:center;margin-top:8px"><button onclick="loadWeek()" style="padding:6px 16px;background:var(--accent);border:none;color:white;border-radius:8px;cursor:pointer;font-size:12px">↺ Retry</button></div>';
+    el.innerHTML = '<div class="empty"><p>Failed to load</p></div>';
   }
 }
 
@@ -4553,6 +4619,87 @@ async function openComickChapterDirect(chapterId, chapterNum, idx) {
     window.scrollTo(0, 0);
   } catch(e) {
     if(imgContainer) imgContainer.innerHTML = '<div class="empty"><p>Failed: ' + e.message + '</p></div>';
+  }
+}
+
+
+async function openExternalFromAPI(url, title, cover) {
+  if(!url) { toast('No URL'); return; }
+  navigate('detail');
+  var chList = document.getElementById('chapter-list');
+  if(chList) chList.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
+
+  // Set basic detail info immediately
+  var coverEl = document.getElementById('detail-cover-img');
+  var backdrop = document.getElementById('detail-backdrop');
+  var titleEl = document.getElementById('detail-title');
+  var typeEl = document.getElementById('detail-type');
+  var descEl = document.getElementById('detail-desc');
+  var metaEl = document.getElementById('detail-meta');
+  if(coverEl) coverEl.src = cover || '';
+  if(backdrop && cover) backdrop.style.backgroundImage = 'url(' + cover + ')';
+  if(titleEl) titleEl.textContent = title || 'Unknown';
+  if(typeEl) typeEl.textContent = 'External';
+  if(descEl) descEl.textContent = 'Loading...';
+  if(metaEl) metaEl.innerHTML = '<span class="meta-pill" style="border-color:#e63946;color:#e63946">🌐 External</span>';
+
+  try {
+    // Get chapters via CSAPI
+    const res = await fetch(CSAPI + '/api/chapters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url })
+    });
+    if(!res.ok) throw new Error('CSAPI returned ' + res.status);
+    const data = await res.json();
+    const chapters = data.chapters || [];
+    const sourceName = data.source || 'External';
+
+    if(typeEl) typeEl.textContent = 'via ' + sourceName;
+    if(descEl) descEl.textContent = chapters.length + ' chapters · ' + sourceName;
+    if(metaEl) metaEl.innerHTML = '<span class="meta-pill" style="border-color:#e63946;color:#e63946">🌐 ' + sourceName + '</span>';
+
+    // Build fake manga object for state
+    S.currentManga = {
+      id: 'ext_' + btoa(url).substring(0,16),
+      _externalUrl: url,
+      _source: sourceName,
+      attributes: { title: { en: title }, tags: [], altTitles: [] },
+      relationships: cover ? [{ type: 'cover_art', _directUrl: cover }] : []
+    };
+
+    // Sort chapters ascending (ch 1 first), display descending (newest first)
+    S.currentChapters = chapters.slice().sort(function(a, b) {
+      return parseFloat(b.number || 0) - parseFloat(a.number || 0);
+    }).map(function(ch, i) {
+      return {
+        id: 'extapi_ch_' + i,
+        _externalUrl: ch.url,
+        _source: sourceName,
+        attributes: {
+          chapter: String(ch.number || ch.id || i+1),
+          title: ch.title || ('Chapter ' + (ch.number || i+1)),
+          publishAt: ''
+        }
+      };
+    });
+
+    if(!S.currentChapters.length) {
+      if(chList) chList.innerHTML = '<div class="empty"><p>No chapters found</p></div>';
+      return;
+    }
+
+    if(chList) {
+      chList.innerHTML = S.currentChapters.map(function(ch, i) {
+        return '<div class="chapter-item' + (isChRead(ch.id) ? ' read' : '') + '" onclick="openChapter(' + JSON.stringify(ch.id) + ',' + JSON.stringify(ch.attributes.chapter) + ',' + i + ')">' +
+          '<div class="chapter-num">CH ' + ch.attributes.chapter + '</div>' +
+          '<div class="chapter-name">' + (ch.attributes.title || '') + '</div>' +
+          '<div class="chapter-date"></div>' +
+          '<div class="ch-read-dot"></div></div>';
+      }).join('');
+    }
+  } catch(e) {
+    if(chList) chList.innerHTML = '<div class="empty"><p>Failed: ' + e.message + '</p><p style="font-size:11px;color:var(--muted);margin-top:6px">Source may not support chapter listing</p></div>';
   }
 }
 
