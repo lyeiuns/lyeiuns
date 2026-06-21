@@ -1281,6 +1281,12 @@ nav::before {
   color: #e63946 !important;
 }
 
+
+/* Source picker */
+.source-picker { display:flex; gap:6px; overflow-x:auto; padding:12px 16px 0; scrollbar-width:none; flex-wrap:nowrap; }
+.source-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:6px 14px; font-family:Bebas Neue,sans-serif; font-size:12px; letter-spacing:1px; cursor:pointer; white-space:nowrap; flex-shrink:0; border-radius:4px; touch-action:manipulation; transition:all 0.2s; }
+.source-btn.active { background:var(--manga-red); border-color:var(--manga-red); color:white; }
+
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -2261,29 +2267,67 @@ function renderCard(m) {
 // ═══════════════════════════════════════════
 async function loadBanner() {
   const el = document.getElementById('banner-carousel');
+  if(!el) return;
   try {
-    const ctrl = new AbortController();
-    setTimeout(()=>ctrl.abort(),8000);
-    const res = await fetch(`${API}/manga?limit=6&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe`,{signal:ctrl.signal});
+    const res = await fetch(CSAPI + '/api/frontpage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'comix', section: 'trending', limit: 6, days: 7 })
+    });
+    if(!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
-    S.bannerData = (data.data||[]).filter(m=>getCover(m));
-    if(!S.bannerData.length){el.style.display='none';return;}
-    el.style.height='300px';
-    el.innerHTML = S.bannerData.map((m,i)=>{
-      const cover=getCover(m),title=getTitle(m),type=getType(m);
-      const desc=m.attributes?.description?.en||Object.values(m.attributes?.description||{})[0]||'';
-      return `<div class="banner-slide${i===0?' active':''}" style="background-image:url(${cover})">
-        <div class="banner-overlay"></div>
-        <div class="banner-content">
-          <div class="banner-type">${type}</div>
-          <div class="banner-title">${title}</div>
-          <div class="banner-desc">${desc}</div>
-          <button class="banner-btn" onclick="openDetail('${esc(m.id)}')">Read Now</button>
-        </div>
-      </div>`;
-    }).join('')+`<div class="banner-dots">${S.bannerData.map((_,i)=>`<div class="banner-dot${i===0?' active':''}" onclick="goBanner(${i})"></div>`).join('')}</div>`;
-    S.bannerTimer = setInterval(()=>goBanner((S.bannerIdx+1)%S.bannerData.length),4500);
-  } catch(e){el.style.display='none';}
+    const items = (data.section && data.section.items) || [];
+    if(!items.length) throw new Error('no items');
+    S.bannerData = items;
+    let idx = 0;
+    function showSlide(i) {
+      const item = items[i];
+      const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+      el.innerHTML =
+        '<div class="banner-slide" style="background-image:url(' + cover + ')" onclick="openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(item.title) + ',' + JSON.stringify(cover) + ')">' +
+        '<div class="banner-overlay"></div>' +
+        '<div class="banner-content">' +
+        '<div class="banner-badge">COMIX</div>' +
+        '<div class="banner-title">' + (item.title || '') + '</div>' +
+        '<button class="banner-btn" onclick="event.stopPropagation();openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(item.title) + ',' + JSON.stringify(cover) + ')">Read Now</button>' +
+        '</div>' +
+        '<div class="banner-dots">' + items.map(function(_,j){ return '<div class="banner-dot' + (j===i?' active':'') + '" onclick="event.stopPropagation();showBannerSlide(' + j + ')"></div>'; }).join('') + '</div>' +
+        '</div>';
+    }
+    window.showBannerSlide = function(i){ idx = i; showSlide(i); };
+    showSlide(0);
+    // Auto-advance every 5s
+    if(window._bannerTimer) clearInterval(window._bannerTimer);
+    window._bannerTimer = setInterval(function(){
+      idx = (idx + 1) % items.length;
+      showSlide(idx);
+    }, 5000);
+  } catch(e) {
+    // Fallback to MangaDex
+    try {
+      const res2 = await fetch(API + '/manga?limit=6&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe');
+      const data2 = await res2.json();
+      S.bannerData = data2.data || [];
+      let idx2 = 0;
+      function showMD(i) {
+        const m = S.bannerData[i];
+        if(!m) return;
+        const cover = getCover(m), title = getTitle(m);
+        el.innerHTML =
+          '<div class="banner-slide" style="background-image:url(' + cover + ')" onclick="openDetail(' + JSON.stringify(m.id) + ')">' +
+          '<div class="banner-overlay"></div>' +
+          '<div class="banner-content">' +
+          '<div class="banner-badge">' + getType(m) + '</div>' +
+          '<div class="banner-title">' + title + '</div>' +
+          '<button class="banner-btn" onclick="event.stopPropagation();openDetail(' + JSON.stringify(m.id) + ')">Read Now</button>' +
+          '</div>' +
+          '<div class="banner-dots">' + S.bannerData.map(function(_,j){ return '<div class="banner-dot' + (j===i?' active':'') + '"></div>'; }).join('') + '</div>' +
+          '</div>';
+      }
+      showMD(0);
+      window._bannerTimer = setInterval(function(){ idx2=(idx2+1)%S.bannerData.length; showMD(idx2); }, 5000);
+    } catch(e2) {}
+  }
 }
 function goBanner(i) {
   S.bannerIdx=i;
@@ -2977,44 +3021,46 @@ window.filterLib = function(type, el) {
 async function loadTop10() {
   const el = document.getElementById('top10-scroll');
   if(!el) return;
-
-  // skeleton
-  el.innerHTML = Array(6).fill(0).map(()=>`
-    <div class="top10-skeleton">
-      <div class="skeleton top10-skeleton-cover"></div>
-      <div class="skeleton skel-line" style="margin-top:8px;width:120px"></div>
-      <div class="skeleton skel-line short" style="margin-top:4px;width:80px"></div>
-    </div>`).join('');
-
+  el.innerHTML = Array(6).fill(0).map(function(){
+    return '<div class="top10-skeleton"><div class="skeleton top10-skeleton-cover"></div><div style="flex:1"><div class="skeleton skel-line" style="height:14px;margin-bottom:6px"></div><div class="skeleton skel-line" style="width:60%;height:10px"></div></div></div>';
+  }).join('');
   try {
-    const url = `${API}/manga?limit=10&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive`;
-    const res = await fetch(url);
+    const res = await fetch(CSAPI + '/api/frontpage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'comix', section: 'trending', limit: 10, days: 30 })
+    });
+    if(!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
-    if(!data.data?.length) { el.innerHTML=''; return; }
-
-    el.innerHTML = data.data.map((m, i) => {
-      const cover = getCover(m);
-      const title = getTitle(m);
-      const type = getType(m);
-      const num = i + 1;
-
-      return `
-        <div class="top10-card" onclick="openDetail('${esc(m.id)}')">
-          <div class="top10-num">${num}</div>
-          <div class="top10-cover-wrap">
-            ${cover
-              ? `<img class="top10-cover" src="${cover}" alt="${esc(title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=top10-cover-placeholder>${esc(title)}</div>'">`
-              : `<div class="top10-cover-placeholder">${title}</div>`
-            }
-          </div>
-          <div class="top10-info">
-            <div class="top10-title">${title}</div>
-            <div class="top10-type">${type}</div>
-          </div>
-        </div>`;
+    const items = (data.section && data.section.items) || [];
+    if(!items.length) throw new Error('no items');
+    el.innerHTML = items.map(function(item, i) {
+      const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+      return '<div class="top10-item" onclick="openExternalFromAPI(' + JSON.stringify(item.url) + ',' + JSON.stringify(item.title) + ',' + JSON.stringify(cover) + ')">' +
+        '<div class="top10-rank">' + String(i+1).padStart(2,'0') + '</div>' +
+        (cover ? '<img class="top10-cover" src="' + cover + '" alt="" loading="lazy">' : '<div class="top10-cover" style="background:var(--surface2)"></div>') +
+        '<div class="top10-info">' +
+        '<div class="top10-title">' + (item.title || '') + '</div>' +
+        '<div class="top10-meta">' + (item.rating ? '⭐ ' + item.rating : '') + (item.followers ? ' · ' + parseInt(item.followers).toLocaleString() + ' followers' : '') + '</div>' +
+        '</div></div>';
     }).join('');
   } catch(e) {
-    el.innerHTML = '';
+    // Fallback to MangaDex
+    try {
+      const res2 = await fetch(API + '/manga?limit=10&order[followedCount]=desc&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive');
+      const data2 = await res2.json();
+      const items2 = data2.data || [];
+      el.innerHTML = items2.map(function(m, i) {
+        const cover = getCover(m), title = getTitle(m);
+        return '<div class="top10-item" onclick="openDetail(' + JSON.stringify(m.id) + ')">' +
+          '<div class="top10-rank">' + String(i+1).padStart(2,'0') + '</div>' +
+          (cover ? '<img class="top10-cover" src="' + cover + '" alt="" loading="lazy">' : '<div class="top10-cover" style="background:var(--surface2)"></div>') +
+          '<div class="top10-info">' +
+          '<div class="top10-title">' + title + '</div>' +
+          '<div class="top10-meta">' + ((m.attributes && m.attributes.status) || '') + '</div>' +
+          '</div></div>';
+      }).join('');
+    } catch(e2) {}
   }
 }
 
@@ -3022,32 +3068,49 @@ async function loadTop10() {
 // FEATURED MANHWA
 // ═══════════════════════════════════════════
 async function loadFeatured() {
-  const SOLO_LEVELING_ID = '32d76d19-8a05-4db0-9fc2-e0b0648fe9d0';
   try {
-    const res = await fetch(API + "/manga/" + SOLO_LEVELING_ID + "?includes[]=cover_art");
+    const res = await fetch(CSAPI + '/api/frontpage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source: 'comix', section: 'most_followed', limit: 1 })
+    });
+    if(!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
-    const m = data.data;
-    if(!m) return;
-    const cover = getCover(m);
-    const title = getTitle(m);
-    const desc = m.attributes?.description?.en || Object.values(m.attributes?.description||{})[0] || '';
-    const tags = m.attributes?.tags?.slice(0,4).map(t=>t.attributes?.name?.en||'')||[];
-
-    const coverEl = document.getElementById('featured-cover');
-    const bgEl = document.getElementById('featured-bg');
-    const titleEl = document.getElementById('featured-title');
-    const descEl = document.getElementById('featured-desc');
-    const tagsEl = document.getElementById('featured-tags');
-
-    if(coverEl && cover) coverEl.src = cover;
-    if(bgEl && cover) bgEl.style.backgroundImage = `url(${cover})`;
-    if(titleEl) titleEl.textContent = title;
-    if(descEl) descEl.textContent = desc;
-    if(tagsEl) tagsEl.innerHTML = tags.map(t=>`<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);font-size:10px;padding:3px 10px;border-radius:20px">${t}</span>`).join('');
+    const items = (data.section && data.section.items) || [];
+    if(!items.length) throw new Error('no items');
+    const item = items[0];
+    const cover = item.coverImage ? CF_PROXY + '/img?url=' + encodeURIComponent(item.coverImage) : '';
+    const fc = document.getElementById('featured-cover');
+    const ft = document.getElementById('featured-title');
+    const fd = document.getElementById('featured-desc');
+    const fb = document.getElementById('featured-btn');
+    const ftags = document.getElementById('featured-tags');
+    const fcard = document.getElementById('featured-card');
+    if(fc) fc.src = cover;
+    if(ft) ft.textContent = item.title || '';
+    if(fd) fd.textContent = (item.followers ? item.followers + ' followers' : '') + (item.rating ? ' · ⭐ ' + item.rating : '');
+    if(ftags) ftags.innerHTML = '<span class="feat-tag">🔥 FEATURED MANHWA</span>';
+    if(fb) { fb.textContent = 'READ NOW'; fb.onclick = function(){ openExternalFromAPI(item.url, item.title, cover); }; }
+    if(fcard) { fcard.onclick = function(){ openExternalFromAPI(item.url, item.title, cover); }; }
+    if(fcard && cover) fcard.style.backgroundImage = 'url(' + cover + ')';
   } catch(e) {
-    // silently fail — featured card stays as placeholder
-    const titleEl = document.getElementById('featured-title');
-    if(titleEl) titleEl.textContent = 'Solo Leveling';
+    // Fallback to MangaDex Solo Leveling
+    try {
+      const SOLO = '32d76d19-8a05-4db0-9fc2-e0b0648fe9d0';
+      const res2 = await fetch(API + '/manga/' + SOLO + '?includes[]=cover_art');
+      const data2 = await res2.json();
+      const m = data2.data;
+      if(!m) return;
+      const cover = getCover(m), title = getTitle(m);
+      const fc = document.getElementById('featured-cover');
+      const ft = document.getElementById('featured-title');
+      const fb = document.getElementById('featured-btn');
+      const fcard = document.getElementById('featured-card');
+      if(fc) fc.src = cover || '';
+      if(ft) ft.textContent = title;
+      if(fb) { fb.textContent = 'READ NOW'; fb.onclick = function(){ openDetail(m.id); }; }
+      if(fcard) fcard.onclick = function(){ openDetail(m.id); };
+    } catch(e2) {}
   }
 }
 
@@ -4623,83 +4686,120 @@ async function openComickChapterDirect(chapterId, chapterNum, idx) {
 }
 
 
+
+
+
+// Multi-source chapter picker
+async function loadChaptersForSource(url, sourceBtn) {
+  const chList = document.getElementById('chapter-list');
+  if(!chList) return;
+  // Mark active
+  document.querySelectorAll('.source-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(sourceBtn) sourceBtn.classList.add('active');
+  chList.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
+  try {
+    const res = await fetch(CSAPI + '/api/chapters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url })
+    });
+    if(!res.ok) throw new Error('status ' + res.status);
+    const data = await res.json();
+    const chapters = (data.chapters || []).sort(function(a,b){ return parseFloat(b.number||0)-parseFloat(a.number||0); });
+    if(!chapters.length) { chList.innerHTML = '<div class="empty"><p>No chapters from this source</p></div>'; return; }
+
+    // Rebuild currentChapters for this source
+    S.currentChapters = chapters.map(function(ch, i) {
+      return {
+        id: 'extapi_ch_' + i,
+        _externalUrl: ch.url,
+        _source: data.source || 'External',
+        attributes: { chapter: String(ch.number || i+1), title: ch.title || '', publishAt: '' }
+      };
+    });
+
+    chList.innerHTML = S.currentChapters.map(function(ch, i) {
+      return '<div class="chapter-item' + (isChRead(ch.id) ? ' read' : '') + '" onclick="openChapter(' + JSON.stringify(ch.id) + ',' + JSON.stringify(ch.attributes.chapter) + ',' + i + ')">' +
+        '<div class="chapter-num">CH ' + ch.attributes.chapter + '</div>' +
+        '<div class="chapter-name">' + (ch.attributes.title || '') + '</div>' +
+        '<div class="chapter-date"></div><div class="ch-read-dot"></div></div>';
+    }).join('');
+  } catch(e) {
+    chList.innerHTML = '<div class="empty"><p>Failed: ' + e.message + '</p></div>';
+  }
+}
+
 async function openExternalFromAPI(url, title, cover) {
   if(!url) { toast('No URL'); return; }
   navigate('detail');
-  var chList = document.getElementById('chapter-list');
-  if(chList) chList.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
-
-  // Set basic detail info immediately
+  // Set cover/title immediately
   var coverEl = document.getElementById('detail-cover-img');
   var backdrop = document.getElementById('detail-backdrop');
   var titleEl = document.getElementById('detail-title');
   var typeEl = document.getElementById('detail-type');
   var descEl = document.getElementById('detail-desc');
   var metaEl = document.getElementById('detail-meta');
+  var chList = document.getElementById('chapter-list');
   if(coverEl) coverEl.src = cover || '';
   if(backdrop && cover) backdrop.style.backgroundImage = 'url(' + cover + ')';
   if(titleEl) titleEl.textContent = title || 'Unknown';
   if(typeEl) typeEl.textContent = 'External';
-  if(descEl) descEl.textContent = 'Loading...';
+  if(descEl) descEl.textContent = 'Loading sources...';
   if(metaEl) metaEl.innerHTML = '<span class="meta-pill" style="border-color:#e63946;color:#e63946">🌐 External</span>';
+  if(chList) chList.innerHTML = '<div class="loading"><div class="spinner"></div><span>Finding sources...</span></div>';
+
+  S.currentManga = {
+    id: 'ext_' + Date.now(),
+    _externalUrl: url,
+    attributes: { title: { en: title }, tags: [], altTitles: [] },
+    relationships: cover ? [{ type: 'cover_art', _directUrl: cover }] : []
+  };
+  S.currentChapters = [];
 
   try {
-    // Get chapters via CSAPI
-    const res = await fetch(CSAPI + '/api/chapters', {
+    // Search CSAPI for this title to find ALL sources
+    const searchRes = await fetch(CSAPI + '/api/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url })
+      body: JSON.stringify({ query: title, source: 'all' })
     });
-    if(!res.ok) throw new Error('CSAPI returned ' + res.status);
-    const data = await res.json();
-    const chapters = data.chapters || [];
-    const sourceName = data.source || 'External';
+    const searchData = await searchRes.json();
+    const allSources = Array.isArray(searchData) ? searchData : [];
 
-    if(typeEl) typeEl.textContent = 'via ' + sourceName;
-    if(descEl) descEl.textContent = chapters.length + ' chapters · ' + sourceName;
-    if(metaEl) metaEl.innerHTML = '<span class="meta-pill" style="border-color:#e63946;color:#e63946">🌐 ' + sourceName + '</span>';
+    if(descEl) descEl.textContent = allSources.length + ' source(s) found';
 
-    // Build fake manga object for state
-    S.currentManga = {
-      id: 'ext_' + btoa(url).substring(0,16),
-      _externalUrl: url,
-      _source: sourceName,
-      attributes: { title: { en: title }, tags: [], altTitles: [] },
-      relationships: cover ? [{ type: 'cover_art', _directUrl: cover }] : []
-    };
+    // Build source picker if multiple sources
+    let pickerHtml = '<div class="source-picker">';
+    let firstUrl = url; // default to original comix.to URL
+    const sourceUrls = [];
 
-    // Sort chapters ascending (ch 1 first), display descending (newest first)
-    S.currentChapters = chapters.slice().sort(function(a, b) {
-      return parseFloat(b.number || 0) - parseFloat(a.number || 0);
-    }).map(function(ch, i) {
-      return {
-        id: 'extapi_ch_' + i,
-        _externalUrl: ch.url,
-        _source: sourceName,
-        attributes: {
-          chapter: String(ch.number || ch.id || i+1),
-          title: ch.title || ('Chapter ' + (ch.number || i+1)),
-          publishAt: ''
-        }
-      };
+    // Always add comix.to (original) first
+    pickerHtml += '<button class="source-btn active" onclick="loadChaptersForSource(' + JSON.stringify(url) + ', this)">Comix</button>';
+    sourceUrls.push({ name: 'Comix', url: url });
+
+    // Add other sources from search results
+    allSources.forEach(function(sourceResult) {
+      const results = sourceResult.results || [];
+      // Find best matching title
+      const match = results.find(function(r) {
+        return r.title && title && r.title.toLowerCase().includes(title.toLowerCase().substring(0, 10));
+      }) || results[0];
+      if(match && match.url && match.url !== url) {
+        const sName = sourceResult.source || 'External';
+        sourceUrls.push({ name: sName, url: match.url });
+        pickerHtml += '<button class="source-btn" onclick="loadChaptersForSource(' + JSON.stringify(match.url) + ', this)">' + sName + '</button>';
+      }
     });
+    pickerHtml += '</div>';
 
-    if(!S.currentChapters.length) {
-      if(chList) chList.innerHTML = '<div class="empty"><p>No chapters found</p></div>';
-      return;
-    }
+    if(chList) chList.insertAdjacentHTML('beforebegin', pickerHtml);
 
-    if(chList) {
-      chList.innerHTML = S.currentChapters.map(function(ch, i) {
-        return '<div class="chapter-item' + (isChRead(ch.id) ? ' read' : '') + '" onclick="openChapter(' + JSON.stringify(ch.id) + ',' + JSON.stringify(ch.attributes.chapter) + ',' + i + ')">' +
-          '<div class="chapter-num">CH ' + ch.attributes.chapter + '</div>' +
-          '<div class="chapter-name">' + (ch.attributes.title || '') + '</div>' +
-          '<div class="chapter-date"></div>' +
-          '<div class="ch-read-dot"></div></div>';
-      }).join('');
-    }
+    // Load chapters from default source (comix.to)
+    await loadChaptersForSource(url, document.querySelector('.source-btn.active'));
+
   } catch(e) {
-    if(chList) chList.innerHTML = '<div class="empty"><p>Failed: ' + e.message + '</p><p style="font-size:11px;color:var(--muted);margin-top:6px">Source may not support chapter listing</p></div>';
+    // Just load from original URL
+    await loadChaptersForSource(url, null);
   }
 }
 
