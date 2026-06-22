@@ -239,7 +239,7 @@ async function loadBanner() {
   try {
     const res = await fetch(CSAPI + '/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:7})
+      body: JSON.stringify({source:'comick', sectionId:'trending', timeFilter:7})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
@@ -322,7 +322,7 @@ async function loadPopular(typeFilter) {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:7})
+      body: JSON.stringify({source:'comick', sectionId:'trending', timeFilter:7})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
@@ -349,7 +349,7 @@ async function loadRecent() {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sourceId:'comix', sectionId:'recently_added', timeFilter:7})
+      body: JSON.stringify({source:'comick', sectionId:'recently_added', timeFilter:7})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
@@ -932,7 +932,7 @@ async function loadTop10() {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:30})
+      body: JSON.stringify({source:'comick', sectionId:'trending', timeFilter:30})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
@@ -957,7 +957,7 @@ async function loadFeatured() {
   try {
     const res = await fetch(CSAPI + '/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:365})
+      body: JSON.stringify({source:'comick', sectionId:'trending', timeFilter:365})
     });
     const data = await res.json();
     const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
@@ -1403,7 +1403,7 @@ async function loadWeek() {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sourceId:'comix', sectionId:'latest_new'})
+      body: JSON.stringify({source:'comick', sectionId:'latest_new'})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
