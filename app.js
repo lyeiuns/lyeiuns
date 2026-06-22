@@ -2707,9 +2707,9 @@ function closeAsuraDetail(){
 //   cdn.asurascans.com/asura-images/chapters/<slug>/<num>/NNN.webp
 //   cdn.asurascans.com/asura-images/chapters-restored/<slug>/<num>/NNN.webp
 // We detect which folder works for page 1, then load 001,002... until a 404.
-function asuraPageUrl(folder, slug, chap, pageNum){
+function asuraPageUrl(folder, slug, chap, pageNum, ext){
   const nnn = String(pageNum).padStart(3,'0');
-  const raw = 'https://cdn.asurascans.com/asura-images/' + folder + '/' + slug + '/' + chap + '/' + nnn + '.webp';
+  const raw = 'https://cdn.asurascans.com/asura-images/' + folder + '/' + slug + '/' + chap + '/' + nnn + '.' + (ext||'webp');
   return CF_PROXY + '/img?url=' + encodeURIComponent(raw);
 }
 
@@ -2735,11 +2735,17 @@ async function openAsuraChapter(slug, num){
     '<button onclick="backToAsuraChapters()" style="margin-top:10px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer">← Chapter list</button>';
   list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Finding pages...</span></div>';
 
-  // Detect which folder this series uses (test page 1 in each).
-  let folder = null;
-  const candidates = ['chapters', 'chapters-restored'];
-  for(let i=0;i<candidates.length;i++){
-    if(await asuraPageExists(asuraPageUrl(candidates[i], slug, num, 1))){ folder = candidates[i]; break; }
+  // Detect folder AND file extension by testing page 1 across combinations.
+  let folder = null, ext = null;
+  const folders = ['chapters', 'chapters-restored'];
+  const exts = ['webp', 'png', 'jpg', 'jpeg'];
+  outer:
+  for(let f=0; f<folders.length; f++){
+    for(let e=0; e<exts.length; e++){
+      if(await asuraPageExists(asuraPageUrl(folders[f], slug, num, 1, exts[e]))){
+        folder = folders[f]; ext = exts[e]; break outer;
+      }
+    }
   }
   if(!folder){
     list.innerHTML = '<div class="empty"><p>No pages found for this chapter.</p>' +
@@ -2763,13 +2769,13 @@ async function openAsuraChapter(slug, num){
     for(let p = start; p < start + BATCH; p++) batch.push(p);
     // Check all pages in this batch at the same time
     const results = await Promise.all(batch.map(function(p){
-      return asuraPageExists(asuraPageUrl(folder, slug, num, p)).then(function(ok){ return { p: p, ok: ok }; });
+      return asuraPageExists(asuraPageUrl(folder, slug, num, p, ext)).then(function(ok){ return { p: p, ok: ok }; });
     }));
     // Append pages in order until the first missing one
     for(let i=0;i<results.length;i++){
       if(results[i].ok){
         const img = document.createElement('img');
-        img.src = asuraPageUrl(folder, slug, num, results[i].p);
+        img.src = asuraPageUrl(folder, slug, num, results[i].p, ext);
         img.loading = 'lazy';
         img.style.cssText = 'width:100%;display:block';
         reader.appendChild(img);
