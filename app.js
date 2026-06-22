@@ -2950,3 +2950,83 @@ async function openWCChapter(chapId, label){
 
 // Kick off Weeb Central section after Asura
 setTimeout(function(){ loadWeebCentral(); }, 3000);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  BLENDED SCANLATION HOMEPAGE — Phase 3
+//  Expandable source registry. To add a NEW source later, append one entry
+//  with: id, label, load() returning [{title,cover,open}], and you're done —
+//  the blend picks it up automatically.
+// ═══════════════════════════════════════════════════════════════════════════
+const SCAN_SOURCES = [
+  {
+    id: 'asura',
+    label: 'ASURA',
+    load: async function(){
+      const html = await asuraScrape(ASURA + '/series-ranking');
+      const list = asuraParseList(html).slice(0,20);
+      S.asuraList = list; // keep index map in sync for openAsuraByIdx
+      return list.map(function(s, i){
+        return { title: s.title || s.slug, cover: asuraImg(s.cover), label: 'ASURA',
+                 open: (function(idx){ return function(){ openAsuraByIdx(idx); }; })(i) };
+      });
+    }
+  },
+  {
+    id: 'weeb',
+    label: 'WEEB',
+    load: async function(){
+      const html = await wcScrape(WC + '/');
+      const list = wcParseList(html).slice(0,20);
+      S.wcList = list;
+      return list.map(function(s, i){
+        return { title: s.title || s.slug, cover: wcImg(wcCover(s.id)), label: 'WEEB',
+                 open: (function(idx){ return function(){ openWCByIdx(idx); }; })(i) };
+      });
+    }
+  }
+  // ── To add a source later, add { id, label, load } here. ──
+];
+
+// Interleave arrays round-robin so the blend mixes sources evenly.
+function blendInterleave(lists){
+  const out = [], max = Math.max.apply(null, lists.map(function(l){return l.length;}).concat([0]));
+  for(let i=0;i<max;i++){
+    for(let s=0;s<lists.length;s++){
+      if(lists[s][i]) out.push(lists[s][i]);
+    }
+  }
+  return out;
+}
+
+function blendCard(item, i){
+  return '<div class="manga-card" onclick="blendOpen('+i+')">' +
+    '<div class="manga-cover"><img src="'+item.cover+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+    '<div class="manga-badge">'+item.label+'</div></div>' +
+    '<div class="manga-info"><div class="manga-title">'+item.title+'</div>' +
+    '<div class="manga-sub">'+item.label+'</div></div></div>';
+}
+
+function blendOpen(i){
+  const item = (S.blendItems||[])[i];
+  if(item && typeof item.open === 'function') item.open();
+}
+
+async function loadBlend(){
+  const el = document.getElementById('blend-grid');
+  if(!el) return;
+  try {
+    // Load every source in parallel; if one fails, the others still show.
+    const results = await Promise.all(SCAN_SOURCES.map(function(src){
+      return src.load().catch(function(e){ console.error(src.id+' blend load failed:', e.message); return []; });
+    }));
+    const blended = blendInterleave(results);
+    if(!blended.length) throw new Error('no sources returned items');
+    S.blendItems = blended;
+    el.innerHTML = blended.slice(0,30).map(function(item,i){ return blendCard(item,i); }).join('');
+  } catch(e){
+    el.innerHTML = '<div class="empty"><p>Trending unavailable</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+// Load the blend early (it's the headline section)
+setTimeout(function(){ loadBlend(); }, 2000);
