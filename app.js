@@ -7,7 +7,7 @@ const PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api'; // CF Worke
 // After deploying your worker, replace YOUR-NAME below with your CF subdomain
 // e.g. 'https://lyeiuns-proxy.bob123.workers.dev'
 const CF_PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev';
-const CSAPI = 'https://comick-source-api.notaspider.dev';
+const CSAPI = CF_PROXY + '/csapi'; // routed through our CF worker to avoid CORS
 const USE_CF_PROXY = true; // Cloudflare Worker deployed ✅
 
 function proxyImg(url) {
