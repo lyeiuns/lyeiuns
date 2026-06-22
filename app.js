@@ -91,7 +91,8 @@ function getCover(m) {
   const r = (m.relationships||[]).find(x=>x.type==='cover_art');
   const fn = r && r.attributes && r.attributes.fileName;
   if(!fn) return null;
-  return `https://uploads.mangadex.org/covers/${m.id}/${fn}.512.jpg`;
+  // Route through the CF image proxy — MangaDex blocks direct hotlinking from other origins
+  return CF_PROXY + '/img?url=' + encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${fn}.512.jpg`);
 }
 function getTitle(m) {
   const t = m.attributes?.title || {};
