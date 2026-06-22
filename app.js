@@ -3030,3 +3030,57 @@ async function loadBlend(){
 
 // Load the blend early (it's the headline section)
 setTimeout(function(){ loadBlend(); }, 2000);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  BROWSE BY SOURCE — tabbed switcher (Phase 3)
+//  Tabs are generated from SCAN_SOURCES. Selecting a tab shows that source's
+//  grid (reuses each source's own list loader + card + open handler).
+//  Add a source to SCAN_SOURCES → it appears here as a tab automatically.
+// ═══════════════════════════════════════════════════════════════════════════
+S.activeSourceTab = S.activeSourceTab || (SCAN_SOURCES[0] && SCAN_SOURCES[0].id);
+
+function renderSourceTabs(){
+  const bar = document.getElementById('source-tabs');
+  if(!bar) return;
+  bar.innerHTML = SCAN_SOURCES.map(function(src){
+    const on = (src.id === S.activeSourceTab);
+    return '<button onclick="selectSourceTab(\''+src.id+'\')" style="flex:shrink-0;white-space:nowrap;padding:8px 18px;border-radius:20px;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;font-weight:600;border:1px solid '+(on?'transparent':'var(--border,#2a2420)')+';background:'+(on?'var(--manga-red,#e63946)':'transparent')+';color:'+(on?'#fff':'var(--muted,#888)')+'">'+src.label+'</button>';
+  }).join('');
+}
+
+async function selectSourceTab(id){
+  S.activeSourceTab = id;
+  renderSourceTabs();
+  const grid = document.getElementById('source-grid');
+  if(!grid) return;
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
+  const src = SCAN_SOURCES.find(function(s){ return s.id === id; });
+  if(!src){ grid.innerHTML = '<div class="empty"><p>Unknown source</p></div>'; return; }
+  try {
+    const items = await src.load();
+    if(!items.length) throw new Error('no items');
+    S.sourceTabItems = items;
+    grid.innerHTML = items.slice(0,30).map(function(item,i){
+      return '<div class="manga-card" onclick="sourceTabOpen('+i+')">' +
+        '<div class="manga-cover"><img src="'+item.cover+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+        '<div class="manga-badge">'+item.label+'</div></div>' +
+        '<div class="manga-info"><div class="manga-title">'+item.title+'</div>' +
+        '<div class="manga-sub">'+item.label+'</div></div></div>';
+    }).join('');
+  } catch(e){
+    grid.innerHTML = '<div class="empty"><p>'+src.label+' unavailable</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+function sourceTabOpen(i){
+  const item = (S.sourceTabItems||[])[i];
+  if(item && typeof item.open === 'function') item.open();
+}
+
+function loadSourceTabs(){
+  renderSourceTabs();
+  if(S.activeSourceTab) selectSourceTab(S.activeSourceTab);
+}
+
+// Replace the old separate loadAsura/loadWeebCentral kickoffs
+setTimeout(function(){ loadSourceTabs(); }, 2400);
