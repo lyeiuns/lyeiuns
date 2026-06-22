@@ -1431,6 +1431,22 @@ nav::before {
     </div>
     <div id="recent-grid" class="manga-grid"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
   </div>
+
+  <!-- ASURA SCANS (Phase 2 · Step 1) -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title"><span class="section-num">04</span> Asura Scans<span class="jp-sub">アスラ</span></div>
+    </div>
+    <div id="asura-grid" class="manga-grid"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
+  </div>
+</div>
+
+<!-- ASURA DETAIL OVERLAY -->
+<div id="asura-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg,#0a0806);overflow-y:auto;padding:20px;-webkit-overflow-scrolling:touch">
+  <button onclick="closeAsuraDetail()" style="background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;margin-bottom:16px">← Back</button>
+  <div id="asura-detail-head" style="margin-bottom:20px"></div>
+  <div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:12px">CHAPTERS</div>
+  <div id="asura-chapters"></div>
 </div>
 
 <!-- SEARCH -->

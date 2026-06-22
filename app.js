@@ -2594,3 +2594,118 @@ setTimeout(function(){ loadFeatured(); }, 800);
 setTimeout(function(){ loadTop10(); }, 1200);
 setTimeout(function(){ loadRecent(); }, 1600);
 setTimeout(function(){ loadWeek(); }, 2000);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ASURA SCANS — Phase 2 · Step 1 (browse + chapter list only; no reading yet)
+//  Browse: scrape /series-ranking.  Chapters: parse the series page.
+//  Fully isolated from the MangaDex code above.
+// ═══════════════════════════════════════════════════════════════════════════
+const ASURA = 'https://asurascans.com';
+
+async function asuraScrape(url){
+  const res = await fetch(CF_PROXY + '/scrape?url=' + encodeURIComponent(url));
+  if(!res.ok) throw new Error('scrape ' + res.status);
+  return await res.text();
+}
+function asuraImg(url){ return CF_PROXY + '/img?url=' + encodeURIComponent(url); }
+
+// Parse /series-ranking → [{slug,title,cover,rating}]
+function asuraParseList(html){
+  const out = [], seen = {};
+  const re = /<a[^>]+href="(?:https?:\/\/asurascans\.com)?\/comics\/([^"\/?#]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+  let m;
+  while((m = re.exec(html))){
+    const slug = m[1], inner = m[2];
+    if(seen[slug]) continue;
+    const cov = (inner.match(/https:\/\/cdn\.asurascans\.com\/[^"'\s)]+\.webp/i) || [null])[0];
+    if(!cov) continue; // skip nav links with no cover
+    let title = (inner.match(/alt="([^"]+)"/i) || [null,null])[1];
+    if(!title){
+      const txt = inner.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+      title = (txt.split(/\s{2,}/)[0] || txt || slug);
+    }
+    const rating = (inner.match(/\b(\d{1,2}\.\d)\b/) || [null,null])[1];
+    seen[slug] = 1;
+    out.push({ slug, title: title.trim(), cover: cov, rating });
+  }
+  return out;
+}
+
+function asuraCard(s, i){
+  return '<div class="manga-card" onclick="openAsuraByIdx('+i+')">' +
+    '<div class="manga-cover"><img src="'+asuraImg(s.cover)+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+    '<div class="manga-badge">ASURA</div></div>' +
+    '<div class="manga-info"><div class="manga-title">'+(s.title||s.slug)+'</div>' +
+    '<div class="manga-sub">'+(s.rating?('★ '+s.rating):'Manhwa')+'</div></div></div>';
+}
+
+async function loadAsura(){
+  const el = document.getElementById('asura-grid');
+  if(!el) return;
+  try {
+    const html = await asuraScrape(ASURA + '/series-ranking');
+    const list = asuraParseList(html);
+    if(!list.length) throw new Error('no series parsed');
+    S.asuraList = list;
+    el.innerHTML = list.slice(0,30).map(function(s,i){ return asuraCard(s,i); }).join('');
+  } catch(e){
+    el.innerHTML = '<div class="empty"><p>Asura unavailable</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+function openAsuraByIdx(i){
+  const s = (S.asuraList||[])[i];
+  if(s) openAsuraSeries(s.slug, s.title);
+}
+
+// Parse a series page → array of chapter numbers (desc). Fallback: build 1..count.
+function asuraParseSeries(html){
+  const nums = {};
+  const re = /\/comics\/[^"\/]+\/chapter\/(\d+(?:\.\d+)?)/gi;
+  let m;
+  while((m = re.exec(html))){ nums[m[1]] = 1; }
+  let chapters = Object.keys(nums).map(parseFloat).filter(function(n){return !isNaN(n);}).sort(function(a,b){return b-a;});
+  if(chapters.length <= 1){
+    const cm = html.match(/([\d,]+)\s*(?:<[^>]*>\s*)*Chapters/i) || html.match(/Chapters[\s\S]{0,40}?([\d,]+)/i);
+    const n = cm ? parseInt(cm[1].replace(/,/g,''),10) : 0;
+    if(n > 1){ chapters = []; for(let k=n;k>=1;k--) chapters.push(k); }
+  }
+  return chapters;
+}
+
+async function openAsuraSeries(slug, title){
+  const ov = document.getElementById('asura-overlay');
+  const head = document.getElementById('asura-detail-head');
+  const list = document.getElementById('asura-chapters');
+  if(!ov) return;
+  ov.style.display = 'block';
+  window.scrollTo(0,0);
+  head.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;font-size:28px;letter-spacing:1px">'+(title||slug)+'</div>' +
+                   '<div style="color:var(--muted,#888);font-size:12px;margin-top:4px">Asura Scans</div>';
+  list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
+  try {
+    const html = await asuraScrape(ASURA + '/comics/' + slug);
+    const chapters = asuraParseSeries(html);
+    if(!chapters.length) throw new Error('no chapters found');
+    S.asuraCurrent = { slug, title, chapters };
+    list.innerHTML = chapters.map(function(n){
+      return '<div onclick="openAsuraChapter(\''+slug+'\','+n+')" style="padding:12px 14px;border:1px solid var(--border,#2a2420);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
+        '<span>Chapter '+n+'</span><span style="color:var(--muted,#888);font-size:11px">ASURA</span></div>';
+    }).join('');
+  } catch(e){
+    list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+function closeAsuraDetail(){
+  const ov = document.getElementById('asura-overlay');
+  if(ov) ov.style.display = 'none';
+}
+
+// Step 1: reading is wired in Step 2. For now just confirm the tap works.
+function openAsuraChapter(slug, num){
+  alert('Step 1 working! Reading comes next.\n\n' + slug + ' · Chapter ' + num);
+}
+
+// Kick off Asura section after the MangaDex loaders
+setTimeout(function(){ loadAsura(); }, 2400);
