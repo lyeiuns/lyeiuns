@@ -526,13 +526,13 @@ async function openChapter(chapterId,chapterNum,idx) {
   }
 
   try {
-    const res=await fetch(`https://api.mangadex.org/at-home/server/${chapterId}`); // direct: at-home token is tied to the requesting IP
+    const res=await fetch(API + `/at-home/server/${chapterId}`);
     const data=await res.json();
     const pages=data.chapter?.data||[];
     if(!pages.length){document.getElementById('reader-images').innerHTML='<div class="empty"><p>No pages</p></div>';return;}
     const base=data.baseUrl,hash=data.chapter?.hash;
     document.getElementById('reader-images').style.direction=S.settings.direction||'ltr';
-    document.getElementById('reader-images').innerHTML=pages.map(p=>`<img src="${base}/data/${hash}/${p}" alt="" loading="lazy">`).join('');
+    document.getElementById('reader-images').innerHTML=pages.map(p=>`<img src="${CF_PROXY}/img?url=${encodeURIComponent(base+'/data/'+hash+'/'+p)}" alt="" loading="lazy">`).join('');
     // scroll progress
     window.onscroll=function(){
       const prog=document.getElementById('reader-progress');
