@@ -2703,15 +2703,17 @@ function closeAsuraDetail(){
 }
 
 // ── Step 2: READING ─────────────────────────────────────────────────────────
-// Pages live at cdn.asurascans.com/asura-images/chapters/<slug>/<num>/NNN.webp
-// We load 001,002,003... until one 404s. Each page loads through the /img proxy.
-function asuraPageUrl(slug, chap, pageNum){
+// Pages live under ONE of two folders depending on the series:
+//   cdn.asurascans.com/asura-images/chapters/<slug>/<num>/NNN.webp
+//   cdn.asurascans.com/asura-images/chapters-restored/<slug>/<num>/NNN.webp
+// We detect which folder works for page 1, then load 001,002... until a 404.
+function asuraPageUrl(folder, slug, chap, pageNum){
   const nnn = String(pageNum).padStart(3,'0');
-  const raw = 'https://cdn.asurascans.com/asura-images/chapters/' + slug + '/' + chap + '/' + nnn + '.webp';
+  const raw = 'https://cdn.asurascans.com/asura-images/' + folder + '/' + slug + '/' + chap + '/' + nnn + '.webp';
   return CF_PROXY + '/img?url=' + encodeURIComponent(raw);
 }
 
-// Check if a page exists (HEAD-style via image load). Resolves true/false.
+// Check if a page exists (via image load). Resolves true/false.
 function asuraPageExists(url){
   return new Promise(function(resolve){
     const img = new Image();
@@ -2720,7 +2722,7 @@ function asuraPageExists(url){
     img.onload = function(){ finish(img.naturalWidth > 0); };
     img.onerror = function(){ finish(false); };
     img.src = url;
-    setTimeout(function(){ finish(false); }, 15000); // safety timeout
+    setTimeout(function(){ finish(false); }, 15000);
   });
 }
 
@@ -2733,22 +2735,30 @@ async function openAsuraChapter(slug, num){
     '<button onclick="backToAsuraChapters()" style="margin-top:10px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer">← Chapter list</button>';
   list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Finding pages...</span></div>';
 
-  // Discover how many pages exist: probe sequentially until a 404.
+  // Figure out which folder this series uses by testing page 1 in each.
+  let folder = null;
+  const candidates = ['chapters', 'chapters-restored'];
+  for(let i=0;i<candidates.length;i++){
+    const ok = await asuraPageExists(asuraPageUrl(candidates[i], slug, num, 1));
+    if(ok){ folder = candidates[i]; break; }
+  }
+
+  if(!folder){
+    list.innerHTML = '<div class="empty"><p>No pages found for this chapter.</p>' +
+      '<button onclick="backToAsuraChapters()" style="margin-top:10px;padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">← Back</button></div>';
+    return;
+  }
+
+  // Collect pages until a 404.
   const urls = [];
   let p = 1;
-  const MAX = 300; // hard safety cap
+  const MAX = 300;
   while(p <= MAX){
-    const u = asuraPageUrl(slug, num, p);
+    const u = asuraPageUrl(folder, slug, num, p);
     const ok = await asuraPageExists(u);
     if(!ok) break;
     urls.push(u);
     p++;
-  }
-
-  if(!urls.length){
-    list.innerHTML = '<div class="empty"><p>No pages found for this chapter.</p>' +
-      '<button onclick="backToAsuraChapters()" style="margin-top:10px;padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">← Back</button></div>';
-    return;
   }
 
   list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
@@ -2756,7 +2766,6 @@ async function openAsuraChapter(slug, num){
     '<div style="text-align:center;padding:24px"><button onclick="backToAsuraChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button></div></div>';
 }
 
-// Go back from the reader to the chapter list (re-render from stored state).
 function backToAsuraChapters(){
   const c = S.asuraCurrent;
   if(c){ openAsuraSeries(c.slug, c.title); }
