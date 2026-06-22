@@ -8,7 +8,7 @@ const PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api'; // CF Worke
 // e.g. 'https://lyeiuns-proxy.bob123.workers.dev'
 const CF_PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev';
 const CSAPI = CF_PROXY + '/csapi'; // routed through our CF worker to avoid CORS
-const API = 'https://api.mangadex.org'; // MangaDex API (direct, CORS-enabled)
+const API = PROXY; // route MangaDex through CF proxy (adds CORS headers)
 const USE_CF_PROXY = true; // Cloudflare Worker deployed ✅
 
 function proxyImg(url) {
