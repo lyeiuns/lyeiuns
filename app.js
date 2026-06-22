@@ -2798,3 +2798,155 @@ function backToAsuraChapters(){
 
 // Kick off Asura section after the MangaDex loaders
 setTimeout(function(){ loadAsura(); }, 2400);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  WEEB CENTRAL — Phase 3 (browse + chapter list + reading)
+//  Browse:   scrape homepage, parse /series/<id>/<slug> links (covers deterministic).
+//  Chapters: scrape /series/<id>/full-chapter-list.
+//  Pages:    scrape /chapters/<id>/images?... → real scans.lastation.us URLs.
+//  Fully isolated from MangaDex + Asura.
+// ═══════════════════════════════════════════════════════════════════════════
+const WC = 'https://weebcentral.com';
+
+async function wcScrape(url){
+  const res = await fetch(CF_PROXY + '/scrape?url=' + encodeURIComponent(url));
+  if(!res.ok) throw new Error('scrape ' + res.status);
+  return await res.text();
+}
+function wcImg(url){ return CF_PROXY + '/img?url=' + encodeURIComponent(url); }
+function wcCover(id){ return 'https://temp.compsci88.com/cover/fallback/' + id + '.jpg'; }
+function wcTitleFromSlug(slug){
+  try { slug = decodeURIComponent(slug); } catch(e){}
+  return slug.replace(/-/g,' ').replace(/\s+/g,' ').trim();
+}
+
+// Parse homepage → unique [{id,title,slug}]
+function wcParseList(html){
+  const out = [], seen = {};
+  const re = /weebcentral\.com\/series\/([0-9A-Z]{26})\/([^"'?#\s]+)/g;
+  let m;
+  while((m = re.exec(html))){
+    const id = m[1], slug = m[2];
+    if(seen[id]) continue;
+    seen[id] = 1;
+    out.push({ id: id, slug: slug, title: wcTitleFromSlug(slug) });
+  }
+  return out;
+}
+
+function wcCard(s, i){
+  return '<div class="manga-card" onclick="openWCByIdx('+i+')">' +
+    '<div class="manga-cover"><img src="'+wcImg(wcCover(s.id))+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+    '<div class="manga-badge">WEEB</div></div>' +
+    '<div class="manga-info"><div class="manga-title">'+(s.title||s.slug)+'</div>' +
+    '<div class="manga-sub">Manga</div></div></div>';
+}
+
+async function loadWeebCentral(){
+  const el = document.getElementById('wc-grid');
+  if(!el) return;
+  try {
+    const html = await wcScrape(WC + '/');
+    const list = wcParseList(html);
+    if(!list.length) throw new Error('no series parsed');
+    S.wcList = list;
+    el.innerHTML = list.slice(0,30).map(function(s,i){ return wcCard(s,i); }).join('');
+  } catch(e){
+    el.innerHTML = '<div class="empty"><p>Weeb Central unavailable</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+function openWCByIdx(i){
+  const s = (S.wcList||[])[i];
+  if(s) openWCSeries(s.id, s.title);
+}
+
+// Parse full-chapter-list → [{id,label}] (newest first as returned)
+function wcParseChapters(html){
+  const out = [], seen = {};
+  const re = /\/chapters\/([0-9A-Z]{26})"[^>]*>([\s\S]*?)<\/a>/g;
+  let m;
+  while((m = re.exec(html))){
+    const id = m[1];
+    if(seen[id]) continue;
+    seen[id] = 1;
+    let label = m[2].replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    if(!label) label = 'Chapter';
+    out.push({ id: id, label: label });
+  }
+  return out;
+}
+
+async function openWCSeries(id, title){
+  const ov = document.getElementById('wc-overlay');
+  const head = document.getElementById('wc-detail-head');
+  const list = document.getElementById('wc-chapters');
+  if(!ov) return;
+  ov.style.display = 'block';
+  window.scrollTo(0,0);
+  head.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;font-size:28px;letter-spacing:1px">'+(title||'')+'</div>' +
+                   '<div style="color:var(--muted,#888);font-size:12px;margin-top:4px">Weeb Central</div>';
+  list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
+  try {
+    const html = await wcScrape(WC + '/series/' + id + '/full-chapter-list');
+    const chapters = wcParseChapters(html);
+    if(!chapters.length) throw new Error('no chapters found');
+    S.wcCurrent = { id: id, title: title, chapters: chapters };
+    list.innerHTML = chapters.map(function(c){
+      return '<div onclick="openWCChapter(\''+c.id+'\',\''+c.label.replace(/'/g,"\\'")+'\')" style="padding:12px 14px;border:1px solid var(--border,#2a2420);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
+        '<span>'+c.label+'</span><span style="color:var(--muted,#888);font-size:11px">WEEB</span></div>';
+    }).join('');
+  } catch(e){
+    list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+function closeWCDetail(){
+  const ov = document.getElementById('wc-overlay');
+  if(ov) ov.style.display = 'none';
+}
+
+function backToWCChapters(){
+  const c = S.wcCurrent;
+  if(c){ openWCSeries(c.id, c.title); }
+  else { closeWCDetail(); }
+}
+
+// Extract real page-image URLs from the images-endpoint HTML.
+function wcParsePages(html){
+  const out = [], seen = {};
+  const re = /https?:\/\/[^"'\s)]+?\/manga\/[^"'\s)]+?\.(?:png|jpg|jpeg|webp)/gi;
+  let m;
+  while((m = re.exec(html))){
+    const u = m[0];
+    if(seen[u]) continue;
+    seen[u] = 1;
+    out.push(u);
+  }
+  return out;
+}
+
+async function openWCChapter(chapId, label){
+  const head = document.getElementById('wc-detail-head');
+  const list = document.getElementById('wc-chapters');
+  if(!list) return;
+  window.scrollTo(0,0);
+  if(head) head.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px">'+(label||'Chapter')+'</div>' +
+    '<button onclick="backToWCChapters()" style="margin-top:10px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer">← Chapter list</button>';
+  list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading pages...</span></div>';
+  try {
+    const url = WC + '/chapters/' + chapId + '/images?is_prev=False&current_page=1&reading_style=long_strip';
+    const html = await wcScrape(url);
+    const pages = wcParsePages(html);
+    if(!pages.length) throw new Error('no pages found');
+    list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
+      pages.map(function(u){ return '<img src="'+wcImg(u)+'" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
+      '<div style="text-align:center;padding:24px"><button onclick="backToWCChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button></div></div>';
+  } catch(e){
+    list.innerHTML = '<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
+      '<div style="margin-top:10px"><button onclick="backToWCChapters()" style="padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">← Back</button></div></div>';
+  }
+}
+
+// Kick off Weeb Central section after Asura
+setTimeout(function(){ loadWeebCentral(); }, 3000);
