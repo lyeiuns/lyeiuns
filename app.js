@@ -457,7 +457,13 @@ async function openDetail(id) {
     // Chapters
     const chapRes = await fetch(API + `/manga/${id}/feed?limit=500&translatedLanguage[]=en&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive`);
     const chapData = await chapRes.json();
-    S.currentChapters = chapData.data || [];
+    // Keep only chapters actually hosted on MangaDex (drop external/licensed links with no pages)
+    S.currentChapters = (chapData.data || []).filter(function(ch){
+      const a = ch.attributes || {};
+      if(a.externalUrl) return false;          // hosted on another official site, no pages here
+      if(a.pages === 0) return false;          // no page images
+      return true;
+    });
 
     const chList = document.getElementById('chapter-list');
     if(!S.currentChapters.length) {
@@ -526,6 +532,11 @@ async function openChapter(chapterId,chapterNum,idx) {
   }
 
   try {
+    const _ch = (S.currentChapters||[]).find(function(c){return c.id===chapterId;});
+    if(_ch && _ch.attributes && _ch.attributes.externalUrl){
+      document.getElementById('reader-images').innerHTML='<div class="empty"><p>This chapter is hosted on an official external site.</p><a href="'+_ch.attributes.externalUrl+'" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:var(--manga-red);color:#fff;text-decoration:none">OPEN OFFICIAL PAGE</a></div>';
+      return;
+    }
     const res=await fetch(API + `/at-home/server/${chapterId}`);
     const data=await res.json();
     const pages=data.chapter?.data||[];
