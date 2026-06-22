@@ -810,7 +810,6 @@ if(sideNav){
 
 
 
-
 // Library status dropdown filter
 let currentLibType = 'all';
 let currentLibStatus = '';
@@ -965,7 +964,6 @@ async function loadFeatured() {
     if(els.card)  { els.card.onclick=()=>openDetail(m.id); if(cov) els.card.style.backgroundImage='url('+cov+')'; }
   } catch(e) {}
 }
-
 
 
 // ═══════════════════════════════════════════
@@ -1297,46 +1295,6 @@ function updateChapterNav() {
   if(next) next.disabled = S.currentChIdx <= 0;
   const ch = S.currentChapters[S.currentChIdx];
   if(info && ch) info.textContent = `CH ${ch.attributes?.chapter||'?'}`;
-}
-
-// ── PATCH doSearch for dual source ───────────────────────────────────────────
-const _origDoSearch2 = window.doSearch;
-window.doSearch = async function(query) {
-  if(!query||!query.trim()) return;
-  navigate('search');
-  const q = query.trim();
-  document.getElementById('main-search').value = q;
-  const el = document.getElementById('search-results');
-  if(!el) return;
-  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Searching...</span></div>';
-  try {
-    const res = await fetch(CSAPI+'/api/search', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({query:q, source:'all'})
-    });
-    if(!res.ok) throw new Error('status '+res.status);
-    const csData = await res.json();
-    const allResults = Array.isArray(csData) ? csData : (csData.results?[csData]:[]);
-    let html = '';
-    allResults.forEach(function(sr) {
-      const sName = sr.source||'External';
-      const badge = sName.substring(0,3).toUpperCase();
-      (sr.results||[]).slice(0,8).forEach(function(item) {
-        const cov = item.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(item.coverImage) : '';
-        const title = item.title||'Unknown';
-        html += '<div class="manga-card" onclick="openExternalFromAPI('+JSON.stringify(item.url)+','+JSON.stringify(title)+','+JSON.stringify(cov)+')">' +
-          '<div class="manga-cover" style="position:relative">' +
-          (cov?'<img src="'+cov+'" alt="" loading="lazy">':'<div class="manga-cover-placeholder">'+title+'</div>') +
-          '<div class="manga-badge">'+sName+'</div>' +
-          '<div style="position:absolute;bottom:4px;left:4px;background:rgba(230,57,70,0.9);color:white;font-size:8px;padding:2px 5px;letter-spacing:1px">'+badge+'</div>' +
-          '</div><div class="manga-info"><div class="manga-title">'+title+'</div>' +
-          '<div class="manga-sub">Ch. '+(item.latestChapter||'?')+'</div></div></div>';
-      });
-    });
-    el.innerHTML = html || '<div class="empty"><div class="empty-icon">😶</div><h3>No results for "'+q+'"</h3><p>Try different keywords</p></div>';
-  } catch(e) {
-    el.innerHTML = '<div class="empty"><p>Search failed: '+e.message+'</p></div>';
-  }
 }
 
 
@@ -2064,7 +2022,6 @@ window.addEventListener('scroll', function() {
 
 
 
-
 // ══ SCANLATION URL MANAGER ══
 // Supported sites and their patterns
 const SCANLATION_SITES = {
@@ -2475,7 +2432,6 @@ async function openComickChapterDirect(chapterId, chapterNum, idx) {
     if(imgContainer) imgContainer.innerHTML = '<div class="empty"><p>Failed: ' + e.message + '</p></div>';
   }
 }
-
 
 
 
