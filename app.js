@@ -239,11 +239,11 @@ async function loadBanner() {
   try {
     const res = await fetch(CSAPI + '/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comix', section:'trending', limit:6, days:7})
+      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:7})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
-    const items = (data.section&&data.section.items)||[];
+    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
     if(!items.length) throw new Error('empty');
     S.bannerData = items;
     let cur = 0;
@@ -263,7 +263,8 @@ async function loadBanner() {
     if(window._bt) clearInterval(window._bt);
     window._bt = setInterval(()=>{ cur=(cur+1)%items.length; show(cur); }, 5000);
   } catch(e) {
-    el.innerHTML = '<div style="height:200px;display:flex;align-items:center;justify-content:center;color:var(--muted)">Loading...</div>';
+    console.error('Banner error:', e.message);
+    el.innerHTML = '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;text-align:center;padding:20px">Banner unavailable<br><span style="font-size:10px;opacity:0.5">'+e.message+'</span></div>';
   }
 }
 function goBanner(i) {
@@ -321,7 +322,7 @@ async function loadPopular(typeFilter) {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comix', section:'trending', limit:24, days:30})
+      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:7})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
@@ -348,11 +349,11 @@ async function loadRecent() {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comix', section:'recently_added', limit:12})
+      body: JSON.stringify({sourceId:'comix', sectionId:'recently_added', timeFilter:7})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
-    const items = (data.section&&data.section.items)||[];
+    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
     const el = document.getElementById('recent-grid');
     if(!el) return;
     el.innerHTML = items.map(it=>{
@@ -931,11 +932,11 @@ async function loadTop10() {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comix', section:'trending', limit:10, days:30})
+      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:30})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
-    const items = (data.section&&data.section.items)||[];
+    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
     el.innerHTML = items.map((it,i)=>{
       const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
       return '<div class="top10-item" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title)+','+JSON.stringify(cov)+')">' +
@@ -956,10 +957,10 @@ async function loadFeatured() {
   try {
     const res = await fetch(CSAPI + '/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comix', section:'most_followed', limit:1})
+      body: JSON.stringify({sourceId:'comix', sectionId:'trending', timeFilter:365})
     });
     const data = await res.json();
-    const items = (data.section&&data.section.items)||[];
+    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
     if(!items.length) return;
     const it = items[0];
     const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
@@ -1402,11 +1403,11 @@ async function loadWeek() {
   try {
     const res = await fetch(CSAPI+'/api/frontpage', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comix', section:'latest_new', limit:12})
+      body: JSON.stringify({sourceId:'comix', sectionId:'latest_new'})
     });
     if(!res.ok) throw new Error('status '+res.status);
     const data = await res.json();
-    const items = (data.section&&data.section.items)||[];
+    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
     el.innerHTML = items.map(it=>{
       const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
       return '<div class="manga-card" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title||'')+','+JSON.stringify(cov)+')">' +
