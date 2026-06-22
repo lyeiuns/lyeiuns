@@ -2702,9 +2702,65 @@ function closeAsuraDetail(){
   if(ov) ov.style.display = 'none';
 }
 
-// Step 1: reading is wired in Step 2. For now just confirm the tap works.
-function openAsuraChapter(slug, num){
-  alert('Step 1 working! Reading comes next.\n\n' + slug + ' · Chapter ' + num);
+// ── Step 2: READING ─────────────────────────────────────────────────────────
+// Pages live at cdn.asurascans.com/asura-images/chapters/<slug>/<num>/NNN.webp
+// We load 001,002,003... until one 404s. Each page loads through the /img proxy.
+function asuraPageUrl(slug, chap, pageNum){
+  const nnn = String(pageNum).padStart(3,'0');
+  const raw = 'https://cdn.asurascans.com/asura-images/chapters/' + slug + '/' + chap + '/' + nnn + '.webp';
+  return CF_PROXY + '/img?url=' + encodeURIComponent(raw);
+}
+
+// Check if a page exists (HEAD-style via image load). Resolves true/false.
+function asuraPageExists(url){
+  return new Promise(function(resolve){
+    const img = new Image();
+    let done = false;
+    const finish = function(ok){ if(!done){ done = true; resolve(ok); } };
+    img.onload = function(){ finish(img.naturalWidth > 0); };
+    img.onerror = function(){ finish(false); };
+    img.src = url;
+    setTimeout(function(){ finish(false); }, 15000); // safety timeout
+  });
+}
+
+async function openAsuraChapter(slug, num){
+  const head = document.getElementById('asura-detail-head');
+  const list = document.getElementById('asura-chapters');
+  if(!list) return;
+  window.scrollTo(0,0);
+  if(head) head.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px">Chapter ' + num + '</div>' +
+    '<button onclick="backToAsuraChapters()" style="margin-top:10px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer">← Chapter list</button>';
+  list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Finding pages...</span></div>';
+
+  // Discover how many pages exist: probe sequentially until a 404.
+  const urls = [];
+  let p = 1;
+  const MAX = 300; // hard safety cap
+  while(p <= MAX){
+    const u = asuraPageUrl(slug, num, p);
+    const ok = await asuraPageExists(u);
+    if(!ok) break;
+    urls.push(u);
+    p++;
+  }
+
+  if(!urls.length){
+    list.innerHTML = '<div class="empty"><p>No pages found for this chapter.</p>' +
+      '<button onclick="backToAsuraChapters()" style="margin-top:10px;padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">← Back</button></div>';
+    return;
+  }
+
+  list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
+    urls.map(function(u){ return '<img src="' + u + '" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
+    '<div style="text-align:center;padding:24px"><button onclick="backToAsuraChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button></div></div>';
+}
+
+// Go back from the reader to the chapter list (re-render from stored state).
+function backToAsuraChapters(){
+  const c = S.asuraCurrent;
+  if(c){ openAsuraSeries(c.slug, c.title); }
+  else { closeAsuraDetail(); }
 }
 
 // Kick off Asura section after the MangaDex loaders
