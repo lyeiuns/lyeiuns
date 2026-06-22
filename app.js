@@ -8,6 +8,7 @@ const PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev/api'; // CF Worke
 // e.g. 'https://lyeiuns-proxy.bob123.workers.dev'
 const CF_PROXY = 'https://lyeiuns-proxy.jeezlebron123.workers.dev';
 const CSAPI = CF_PROXY + '/csapi'; // routed through our CF worker to avoid CORS
+const API = 'https://api.mangadex.org'; // MangaDex API (direct, CORS-enabled)
 const USE_CF_PROXY = true; // Cloudflare Worker deployed ✅
 
 function proxyImg(url) {
@@ -87,12 +88,10 @@ const S = {
 // UTILS
 // ═══════════════════════════════════════════
 function getCover(m) {
-  const r = m.relationships?.find(x=>x.type==='cover_art');
-  if(r?.attributes?.fileName) {
-    // MangaDex covers removed
-    return null;
-  }
-  return null;
+  const r = (m.relationships||[]).find(x=>x.type==='cover_art');
+  const fn = r && r.attributes && r.attributes.fileName;
+  if(!fn) return null;
+  return `https://uploads.mangadex.org/covers/${m.id}/${fn}.512.jpg`;
 }
 function getTitle(m) {
   const t = m.attributes?.title || {};
@@ -233,30 +232,41 @@ function renderCard(m) {
 // ═══════════════════════════════════════════
 // BANNER
 // ═══════════════════════════════════════════
+// ── MangaDex list helpers ───────────────────────────────────────────────────
+const MD_BASE = API + '/manga?includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&hasAvailableChapters=true&availableTranslatedLanguage[]=en';
+async function mdList(extra) {
+  const res = await fetch(MD_BASE + (extra||''));
+  if(!res.ok) throw new Error('status '+res.status);
+  const json = await res.json();
+  return Array.isArray(json.data) ? json.data : [];
+}
+function mdCard(m, badge) {
+  const cov = getCover(m) || '';
+  return '<div class="manga-card" onclick="openDetail(\'' + m.id + '\')">' +
+    '<div class="manga-cover"><img src="' + cov + '" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+    (badge ? '<div class="manga-badge">' + badge + '</div>' : '') + '</div>' +
+    '<div class="manga-info"><div class="manga-title">' + getTitle(m) + '</div>' +
+    '<div class="manga-sub">' + getType(m) + '</div></div></div>';
+}
+
 async function loadBanner() {
   const el = document.getElementById('banner-carousel');
   if(!el) return;
   try {
-    const res = await fetch(CSAPI + '/api/frontpage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comick', section:'trending', timeFilter:7})
-    });
-    if(!res.ok) throw new Error('status '+res.status);
-    const data = await res.json();
-    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
+    const items = await mdList('&order[followedCount]=desc&limit=8');
     if(!items.length) throw new Error('empty');
     S.bannerData = items;
     let cur = 0;
     function show(i) {
-      const it = items[i];
-      const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
+      const m = items[i];
+      const cov = getCover(m) || '';
       el.innerHTML =
-        '<div class="banner-slide" style="background-image:url('+cov+')" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title)+','+JSON.stringify(cov)+')">' +
+        '<div class="banner-slide" style="background-image:url(' + cov + ')" onclick="openDetail(\'' + m.id + '\')">' +
         '<div class="banner-overlay"></div><div class="banner-content">' +
-        '<div class="banner-badge">COMIX</div>' +
-        '<div class="banner-title">'+(it.title||'')+'</div>' +
-        '<button class="banner-btn" onclick="event.stopPropagation();openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title)+','+JSON.stringify(cov)+')">Read Now</button>' +
-        '</div><div class="banner-dots">'+items.map((_,j)=>'<div class="banner-dot'+(j===i?' active':'')+'" onclick="event.stopPropagation();showBannerSlide('+j+')"></div>').join('')+'</div></div>';
+        '<div class="banner-badge">' + getType(m) + '</div>' +
+        '<div class="banner-title">' + getTitle(m) + '</div>' +
+        '<button class="banner-btn" onclick="event.stopPropagation();openDetail(\'' + m.id + '\')">Read Now</button>' +
+        '</div><div class="banner-dots">' + items.map((_,j)=>'<div class="banner-dot'+(j===i?' active':'')+'" onclick="event.stopPropagation();showBannerSlide('+j+')"></div>').join('') + '</div></div>';
     }
     window.showBannerSlide = function(i){ cur=i; show(i); };
     show(0);
@@ -320,50 +330,22 @@ async function loadPopular(typeFilter) {
   if(!el) return;
   el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const res = await fetch(CSAPI+'/api/frontpage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comick', section:'trending', timeFilter:7})
-    });
-    if(!res.ok) throw new Error('status '+res.status);
-    const data = await res.json();
-    let items = (data.section&&data.section.items)||[];
-    // Filter by type if specified
-    // Comix doesn't return type in frontpage, so we rely on title heuristics for now
-    // and just show all for filter tabs
+    let extra = '&order[followedCount]=desc&limit=30';
+    if(S.popularLang) extra += '&originalLanguage[]=' + S.popularLang;
+    const items = await mdList(extra);
     if(!items.length) throw new Error('empty');
-    el.innerHTML = items.map(it=>{
-      const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
-      const title = it.title||'Unknown';
-      return '<div class="manga-card" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(title)+','+JSON.stringify(cov)+')">' +
-        '<div class="manga-cover"><img src="'+cov+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
-        '<div class="manga-badge">Comix</div></div>' +
-        '<div class="manga-info"><div class="manga-title">'+title+'</div>' +
-        '<div class="manga-sub">Ch. '+(it.latestChapter||'?')+(it.rating?' · ⭐'+it.rating:'')+'</div></div></div>';
-    }).join('');
+    el.innerHTML = items.map(m=>mdCard(m,'Popular')).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Failed to load</p><button onclick="loadPopular()" style="margin-top:8px;padding:6px 16px;background:var(--accent);border:none;color:white;cursor:pointer;border-radius:6px">↺ Retry</button></div>';
   }
 }
 
 async function loadRecent() {
+  const el = document.getElementById('recent-grid');
+  if(!el) return;
   try {
-    const res = await fetch(CSAPI+'/api/frontpage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comick', section:'recently_added', timeFilter:7})
-    });
-    if(!res.ok) throw new Error('status '+res.status);
-    const data = await res.json();
-    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
-    const el = document.getElementById('recent-grid');
-    if(!el) return;
-    el.innerHTML = items.map(it=>{
-      const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
-      return '<div class="manga-card" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title||'')+','+JSON.stringify(cov)+')">' +
-        '<div class="manga-cover"><img src="'+cov+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
-        '<div class="manga-badge">New</div></div>' +
-        '<div class="manga-info"><div class="manga-title">'+(it.title||'')+'</div>' +
-        '<div class="manga-sub">Ch. '+(it.latestChapter||'?')+'</div></div></div>';
-    }).join('') || '<div class="empty"><p>Nothing here</p></div>';
+    const items = await mdList('&order[createdAt]=desc&limit=24');
+    el.innerHTML = items.map(m=>mdCard(m,'New')).join('') || '<div class="empty"><p>Nothing here</p></div>';
   } catch(e) {}
 }
 
@@ -930,20 +912,14 @@ async function loadTop10() {
   if(!el) return;
   el.innerHTML = Array(6).fill('<div class="top10-skeleton"><div class="skeleton top10-skeleton-cover"></div><div style="flex:1"><div class="skeleton skel-line" style="height:14px;margin-bottom:6px"></div><div class="skeleton skel-line" style="width:60%;height:10px"></div></div></div>').join('');
   try {
-    const res = await fetch(CSAPI+'/api/frontpage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comick', section:'trending', timeFilter:30})
-    });
-    if(!res.ok) throw new Error('status '+res.status);
-    const data = await res.json();
-    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
-    el.innerHTML = items.map((it,i)=>{
-      const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
-      return '<div class="top10-item" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title)+','+JSON.stringify(cov)+')">' +
-        '<div class="top10-rank">'+String(i+1).padStart(2,'0')+'</div>' +
-        (cov?'<img class="top10-cover" src="'+cov+'" alt="" loading="lazy">':'<div class="top10-cover" style="background:var(--surface2)"></div>') +
-        '<div class="top10-info"><div class="top10-title">'+(it.title||'')+'</div>' +
-        '<div class="top10-meta">'+(it.rating?'⭐'+it.rating:'')+(it.followers?' · '+parseInt(it.followers).toLocaleString()+' followers':'')+'</div></div></div>';
+    const items = await mdList('&order[followedCount]=desc&limit=10');
+    el.innerHTML = items.map((m,i)=>{
+      const cov = getCover(m) || '';
+      return '<div class="top10-item" onclick="openDetail(\'' + m.id + '\')">' +
+        '<div class="top10-rank">' + String(i+1).padStart(2,'0') + '</div>' +
+        (cov ? '<img class="top10-cover" src="' + cov + '" alt="" loading="lazy">' : '<div class="top10-cover" style="background:var(--surface2)"></div>') +
+        '<div class="top10-info"><div class="top10-title">' + getTitle(m) + '</div>' +
+        '<div class="top10-meta">' + getType(m) + ((m.attributes&&m.attributes.year)?(' · '+m.attributes.year):'') + '</div></div></div>';
     }).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Failed to load</p></div>';
@@ -955,15 +931,12 @@ async function loadTop10() {
 // ═══════════════════════════════════════════
 async function loadFeatured() {
   try {
-    const res = await fetch(CSAPI + '/api/frontpage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comick', section:'trending', timeFilter:365})
-    });
-    const data = await res.json();
-    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
+    const items = await mdList('&order[followedCount]=desc&limit=12');
     if(!items.length) return;
-    const it = items[0];
-    const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
+    const m = items[Math.floor(Math.random()*Math.min(items.length,12))];
+    const cov = getCover(m) || '';
+    const d = (m.attributes && m.attributes.description) || {};
+    const desc = d.en || Object.values(d)[0] || '';
     const els = {
       cover: document.getElementById('featured-cover'),
       title: document.getElementById('featured-title'),
@@ -973,11 +946,11 @@ async function loadFeatured() {
       card:  document.getElementById('featured-card'),
     };
     if(els.cover) els.cover.src = cov;
-    if(els.title) els.title.textContent = it.title||'';
-    if(els.desc)  els.desc.textContent  = (it.followers?it.followers+' followers':'') + (it.rating?' · ⭐'+it.rating:'');
-    if(els.tags)  els.tags.innerHTML    = '<span class="feat-tag">⚡ FEATURED</span>';
-    if(els.btn)   { els.btn.textContent='READ NOW'; els.btn.onclick=()=>openExternalFromAPI(it.url,it.title,cov); }
-    if(els.card)  { els.card.onclick=()=>openExternalFromAPI(it.url,it.title,cov); if(cov) els.card.style.backgroundImage='url('+cov+')'; }
+    if(els.title) els.title.textContent = getTitle(m);
+    if(els.desc)  els.desc.textContent  = String(desc).slice(0,160);
+    if(els.tags)  els.tags.innerHTML    = '<span class="feat-tag">\u26a1 FEATURED</span>';
+    if(els.btn)   { els.btn.textContent='READ NOW'; els.btn.onclick=()=>openDetail(m.id); }
+    if(els.card)  { els.card.onclick=()=>openDetail(m.id); if(cov) els.card.style.backgroundImage='url('+cov+')'; }
   } catch(e) {}
 }
 
@@ -1401,21 +1374,8 @@ async function loadWeek() {
   const el = document.getElementById('week-grid');
   if(!el) return;
   try {
-    const res = await fetch(CSAPI+'/api/frontpage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({source:'comick', section:'latest_new'})
-    });
-    if(!res.ok) throw new Error('status '+res.status);
-    const data = await res.json();
-    const items = (data.section&&data.section.items) || (Array.isArray(data.items)?data.items:[]) || [];
-    el.innerHTML = items.map(it=>{
-      const cov = it.coverImage ? CF_PROXY+'/img?url='+encodeURIComponent(it.coverImage) : '';
-      return '<div class="manga-card" onclick="openExternalFromAPI('+JSON.stringify(it.url)+','+JSON.stringify(it.title||'')+','+JSON.stringify(cov)+')">' +
-        '<div class="manga-cover"><img src="'+cov+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
-        '<div class="manga-badge">Updated</div></div>' +
-        '<div class="manga-info"><div class="manga-title">'+(it.title||'')+'</div>' +
-        '<div class="manga-sub">Ch. '+(it.latestChapter||'?')+'</div></div></div>';
-    }).join('') || '<div class="empty"><p>Nothing this week</p></div>';
+    const items = await mdList('&order[latestUploadedChapter]=desc&limit=24');
+    el.innerHTML = items.map(m=>mdCard(m,'Updated')).join('') || '<div class="empty"><p>Nothing this week</p></div>';
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Failed</p></div>';
   }
