@@ -2735,35 +2735,59 @@ async function openAsuraChapter(slug, num){
     '<button onclick="backToAsuraChapters()" style="margin-top:10px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer">← Chapter list</button>';
   list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Finding pages...</span></div>';
 
-  // Figure out which folder this series uses by testing page 1 in each.
+  // Detect which folder this series uses (test page 1 in each).
   let folder = null;
   const candidates = ['chapters', 'chapters-restored'];
   for(let i=0;i<candidates.length;i++){
-    const ok = await asuraPageExists(asuraPageUrl(candidates[i], slug, num, 1));
-    if(ok){ folder = candidates[i]; break; }
+    if(await asuraPageExists(asuraPageUrl(candidates[i], slug, num, 1))){ folder = candidates[i]; break; }
   }
-
   if(!folder){
     list.innerHTML = '<div class="empty"><p>No pages found for this chapter.</p>' +
       '<button onclick="backToAsuraChapters()" style="margin-top:10px;padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">← Back</button></div>';
     return;
   }
 
-  // Collect pages until a 404.
-  const urls = [];
-  let p = 1;
+  // Set up the reader container; pages will be appended as they're confirmed.
+  list.innerHTML = '<div id="asura-reader" style="max-width:800px;margin:0 auto"></div>' +
+    '<div id="asura-reader-status" style="text-align:center;padding:16px;color:var(--muted,#888);font-size:12px">Loading pages…</div>';
+  const reader = document.getElementById('asura-reader');
+
+  // Probe pages in parallel BATCHES; render each batch in order, stop when a batch has a gap.
+  const BATCH = 8;       // pages probed at once
   const MAX = 300;
-  while(p <= MAX){
-    const u = asuraPageUrl(folder, slug, num, p);
-    const ok = await asuraPageExists(u);
-    if(!ok) break;
-    urls.push(u);
-    p++;
+  let total = 0;
+  let start = 1;
+  let stop = false;
+  while(!stop && start <= MAX){
+    const batch = [];
+    for(let p = start; p < start + BATCH; p++) batch.push(p);
+    // Check all pages in this batch at the same time
+    const results = await Promise.all(batch.map(function(p){
+      return asuraPageExists(asuraPageUrl(folder, slug, num, p)).then(function(ok){ return { p: p, ok: ok }; });
+    }));
+    // Append pages in order until the first missing one
+    for(let i=0;i<results.length;i++){
+      if(results[i].ok){
+        const img = document.createElement('img');
+        img.src = asuraPageUrl(folder, slug, num, results[i].p);
+        img.loading = 'lazy';
+        img.style.cssText = 'width:100%;display:block';
+        reader.appendChild(img);
+        total++;
+      } else {
+        stop = true; // first gap = end of chapter
+        break;
+      }
+    }
+    start += BATCH;
   }
 
-  list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
-    urls.map(function(u){ return '<img src="' + u + '" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
-    '<div style="text-align:center;padding:24px"><button onclick="backToAsuraChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button></div></div>';
+  const status = document.getElementById('asura-reader-status');
+  if(status){
+    status.innerHTML = total
+      ? '<button onclick="backToAsuraChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button>'
+      : 'No pages found.';
+  }
 }
 
 function backToAsuraChapters(){
