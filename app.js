@@ -775,22 +775,21 @@ function libHasScan(source, id){ return S.library.some(function(m){ return m && 
 function toggleScanLibrary(source, btn){
   try {
     const c = source==='asura' ? S.asuraCurrent : S.wcCurrent;
-    if(!c){ toast('DEBUG: no current title ('+source+')'); return; }
+    if(!c){ alert('DEBUG: no current title ('+source+')'); return; }
     const id = source==='asura' ? c.slug : c.id;
-    if(!id){ toast('DEBUG: no id'); return; }
+    if(!id){ alert('DEBUG: no id'); return; }
     const exists = libHasScan(source, id);
     if(exists){
       S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
-      toast('Removed (lib now '+S.library.length+')');
     } else {
       S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(source==='asura'?'Manhwa':'Manga') });
-      toast('Saved \u2713 (lib now '+S.library.length+')');
     }
     save('lyeiuns-library', S.library);
     renderLibrary();
     if(btn){ const now=!exists; btn.innerHTML = now?'\u2665':'\u2661'; btn.style.background = now?'var(--manga-red,#e63946)':'transparent'; btn.style.color = now?'#fff':'var(--manga-red,#e63946)'; }
+    alert((exists?'Removed':'Saved')+' \u2713  Library now has '+S.library.length+' items');
   } catch(err){
-    toast('DEBUG error: '+err.message);
+    alert('DEBUG error: '+err.message);
   }
 }
 function removeScanFromLibrary(source, id){
