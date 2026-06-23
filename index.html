@@ -1396,21 +1396,21 @@ nav::before {
     <div class="section-header">
       <div class="section-title"><span class="section-num">01</span> Popular<span class="jp-sub">人気作品</span></div>
       <div class="section-actions">
-        <button class="filter-btn" id="home-filter-btn" onclick="openFilterModal('home')">
+        <button class="filter-btn" id="home-filter-btn" onclick="openFilterModal('home')" style="display:none">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
           Filter <span id="home-filter-count" class="filter-count" style="display:none">0</span>
         </button>
         <button class="see-all" onclick="navigate('search')">See all →</button>
       </div>
     </div>
-    <div class="home-tabs">
+    <div class="home-tabs" style="display:none">
       <button class="home-tab active" onclick="switchTab('all',this)">All</button>
       <button class="home-tab" onclick="switchTab('ja',this)">Manga</button>
       <button class="home-tab" onclick="switchTab('ko',this)">Manhwa</button>
       <button class="home-tab" onclick="switchTab('zh',this)">Manhua</button>
       
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none">
+    <div style="display:none;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none">
       <button class="pop-period-btn active" onclick="setPopularPeriod('all',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:var(--manga-red);color:white;font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">ALL TIME</button>
       <button class="pop-period-btn" onclick="setPopularPeriod('month',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS MONTH</button>
       <button class="pop-period-btn" onclick="setPopularPeriod('week',this)" style="flex-shrink:0;padding:5px 12px;border-radius:0;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:Bebas Neue,sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer">THIS WEEK</button>

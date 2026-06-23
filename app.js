@@ -331,13 +331,17 @@ async function loadPopular(typeFilter) {
   if(!el) return;
   el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    let extra = '&order[followedCount]=desc&limit=30';
-    if(S.popularLang) extra += '&originalLanguage[]=' + S.popularLang;
-    const items = await mdList(extra);
+    const items = await getBlendItems();
     if(!items.length) throw new Error('empty');
-    el.innerHTML = items.map(m=>mdCard(m,'Popular')).join('');
+    el.innerHTML = items.slice(0,30).map(function(item, i){
+      return '<div class="manga-card" onclick="blendOpen(' + i + ')">' +
+        '<div class="manga-cover"><img src="' + item.cover + '" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+        '<div class="manga-badge">' + item.label + '</div></div>' +
+        '<div class="manga-info"><div class="manga-title">' + item.title + '</div>' +
+        '<div class="manga-sub">' + item.label + '</div></div></div>';
+    }).join('');
   } catch(e) {
-    el.innerHTML = '<div class="empty"><p>Failed to load</p><button onclick="loadPopular()" style="margin-top:8px;padding:6px 16px;background:var(--accent);border:none;color:white;cursor:pointer;border-radius:6px">↺ Retry</button></div>';
+    el.innerHTML = '<div class="empty"><p>Failed to load</p></div>';
   }
 }
 
