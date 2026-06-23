@@ -725,9 +725,26 @@ function renderLibrary(filter) {
     var hb=S.history_items.find(function(h){return h.id===b.id;});
     return (hb?(new Date(hb.readAt||0)).getTime():0)-(ha?(new Date(ha.readAt||0)).getTime():0);
   });
-  if(filter!=='all') items=items.filter(function(m){return getType(m).toLowerCase()===filter;});
+  if(filter!=='all') items=items.filter(function(m){return (m._scan?(m.type||'').toLowerCase():getType(m).toLowerCase())===filter;});
   if(!items.length){grid.innerHTML=getChibiEmpty('library','Library Empty','Save titles to read them here');return;}
   grid.innerHTML=items.map(function(m){
+    if(m._scan){
+      var sOpen = m.source==='asura'
+        ? "openAsuraSeries('"+m.id+"',"+JSON.stringify(m.title)+")"
+        : "openWCSeries('"+m.id+"',"+JSON.stringify(m.title)+")";
+      var sCov = m.cover
+        ? '<img src="'+m.cover+'" style="width:56px;height:76px;object-fit:cover;flex-shrink:0" onerror="this.style.opacity=0.3">'
+        : '<div style="width:56px;height:76px;background:var(--surface2);flex-shrink:0"></div>';
+      var sr = '<div style="background:var(--surface);border:1px solid var(--border);margin-bottom:10px;overflow:hidden">';
+      sr += '<div style="display:flex;gap:12px;padding:12px;cursor:pointer" onclick="'+sOpen.replace(/"/g,'&quot;')+'">'+sCov+
+            '<div style="flex:1;min-width:0"><div style="font-size:9px;letter-spacing:1px;color:var(--manga-red);margin-bottom:3px">'+(m.source==='asura'?'ASURA':'WEEB')+'</div>'+
+            '<div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+m.title+'</div></div></div>';
+      sr += '<div style="padding:0 12px 12px;display:flex;gap:8px">';
+      sr += '<button onclick="'+sOpen.replace(/"/g,'&quot;')+'" style="flex:1;padding:8px;background:var(--manga-red);border:none;color:white;font-size:13px;letter-spacing:2px;cursor:pointer">OPEN</button>';
+      sr += '<button onclick="removeScanFromLibrary('+JSON.stringify(m.source)+','+JSON.stringify(m.id)+')" style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;cursor:pointer">\u2715</button>';
+      sr += '</div></div>';
+      return sr;
+    }
     var cover=getCover(m), title=getTitle(m), type=getType(m), id=m.id;
     var eId=esc(id);
     var lastRead=S.history_items.filter(function(h){return h.id===id;}).slice(-1)[0];
@@ -752,6 +769,30 @@ function renderLibrary(filter) {
 }
 
 function removeFromLibrary(id){S.library=S.library.filter(function(m){return m.id!==id;});save('lyeiuns-library',S.library);renderLibrary();toast('Removed from library');}
+
+// ── Scanlation library (save Asura/Weeb titles) ─────────────────────────────
+function libHasScan(source, id){ return S.library.some(function(m){ return m && m._scan && m.source===source && m.id===id; }); }
+function toggleScanLibrary(source, btn){
+  const c = source==='asura' ? S.asuraCurrent : S.wcCurrent;
+  if(!c) return;
+  const id = source==='asura' ? c.slug : c.id;
+  const exists = libHasScan(source, id);
+  if(exists){
+    S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
+    toast('Removed from library');
+  } else {
+    S.library.push({ _scan:true, source:source, id:id, title:c.title, cover:(c.cover||''), type:(source==='asura'?'Manhwa':'Manga') });
+    toast('Added to library \u2713');
+  }
+  save('lyeiuns-library', S.library);
+  if(btn){ const now=!exists; btn.innerHTML = now?'\u2665':'\u2661'; btn.style.background = now?'var(--manga-red,#e63946)':'transparent'; btn.style.color = now?'#fff':'var(--manga-red,#e63946)'; }
+}
+function removeScanFromLibrary(source, id){
+  S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
+  save('lyeiuns-library', S.library);
+  renderLibrary();
+  toast('Removed from library');
+}
 
 function renderLists() {
   renderExternalTitles();
@@ -2773,7 +2814,9 @@ function scanDetailHeader(o){
   '</div>' +
   (o.genres && o.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">'+o.genres.map(function(g){return '<span style="font-size:11px;padding:4px 11px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);border-radius:14px;color:var(--muted,#bbb)">'+g+'</span>';}).join('')+'</div>' : '') +
   (o.desc ? '<div style="font-size:13px;line-height:1.65;color:var(--muted,#b5b0aa);margin-top:14px">'+o.desc+'</div>' : '') +
-  (o.startOnclick ? '<button onclick="'+o.startOnclick+'" style="margin-top:18px;width:100%;padding:15px;background:var(--manga-red,#e63946);border:none;color:#fff;font-family:Bebas Neue,sans-serif;font-size:19px;letter-spacing:2px;border-radius:11px;cursor:pointer">\u25B6 START READING</button>' : '');
+  (o.startOnclick ? '<div style="display:flex;gap:10px;margin-top:18px"><button onclick="'+o.startOnclick+'" style="flex:1;padding:15px;background:var(--manga-red,#e63946);border:none;color:#fff;font-family:Bebas Neue,sans-serif;font-size:19px;letter-spacing:2px;border-radius:11px;cursor:pointer">\u25B6 START READING</button>' +
+   (o.saveSource ? '<button onclick="toggleScanLibrary(\''+o.saveSource+'\',this)" style="width:64px;flex-shrink:0;padding:15px 0;background:'+(libHasScan(o.saveSource,o.saveId)?'var(--manga-red,#e63946)':'transparent')+';border:1px solid var(--manga-red,#e63946);color:'+(libHasScan(o.saveSource,o.saveId)?'#fff':'var(--manga-red,#e63946)')+';font-size:20px;border-radius:11px;cursor:pointer">'+(libHasScan(o.saveSource,o.saveId)?'\u2665':'\u2661')+'</button>' : '') +
+   '</div>' : '');
 }
 function scanChapterRow(onclick, label, source){
   return '<div onclick="'+onclick+'" ' +
@@ -2821,7 +2864,8 @@ async function openAsuraSeries(slug, title){
       title: (title||slug), source: 'Asura Scans',
       cover: d.cover ? asuraImg(d.cover) : '',
       genres: d.genres, desc: d.desc,
-      startOnclick: "openAsuraChapter('"+slug+"',"+firstNum+")"
+      startOnclick: "openAsuraChapter('"+slug+"',"+firstNum+")",
+      saveSource: 'asura', saveId: slug
     });
     list.innerHTML = chapters.map(function(n){
       return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA');
@@ -3036,7 +3080,8 @@ async function openWCSeries(id, title){
     head.innerHTML = scanDetailHeader({
       title: (title||''), source: 'Weeb Central',
       cover: cov, genres: d.genres, desc: d.desc,
-      startOnclick: "openWCChapter('"+firstChap.id+"','"+firstChap.label.replace(/'/g,"\\'")+"')"
+      startOnclick: "openWCChapter('"+firstChap.id+"','"+firstChap.label.replace(/'/g,"\\'")+"')",
+      saveSource: 'weeb', saveId: id
     });
     list.innerHTML = chapters.map(function(c){
       return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB');
