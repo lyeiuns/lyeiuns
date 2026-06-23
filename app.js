@@ -785,7 +785,7 @@ function toggleScanLibrary(source, btn){
     S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
     toast('Removed from library');
   } else {
-    S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(source==='asura'?'Manhwa':'Manga') });
+    S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(c.type || (source==='asura'?'Manhwa':'Manga')) });
     toast('Added to library \u2713');
   }
   save('lyeiuns-library', S.library);
@@ -1057,11 +1057,15 @@ function renderLibraryFiltered() {
     const openCall = m._scan
       ? (m.source==='asura' ? `openAsuraSeries('${m.id}',${JSON.stringify(title)})` : `openWCSeries('${m.id}',${JSON.stringify(title)})`)
       : `openDetail('${esc(m.id)}')`;
+    const rmCall = m._scan
+      ? `removeScanFromLibrary(${JSON.stringify(m.source)},${JSON.stringify(m.id)})`
+      : `removeFromLibrary(${JSON.stringify(m.id)})`;
     return `<div class="manga-card" onclick="${openCall.replace(/"/g,'&quot;')}">
       <div class="manga-cover" style="position:relative">
         ${cover?`<img src="${cover}" alt="" loading="lazy" onerror="this.src=this.src.includes('.512.')?this.src.replace('.512.','.256.'):this.parentElement.innerHTML='<div class=\'manga-cover-placeholder\'>${esc(title)}</div>'">`:`<div class="manga-cover-placeholder">${title}</div>`}
         <div class="manga-badge">${type}</div>
         ${badgeHtml}
+        <button onclick="event.stopPropagation();${rmCall.replace(/"/g,'&quot;')}" style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.65);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2715</button>
       </div>
       <div class="manga-info">
         <div class="manga-title">${title}</div>
@@ -2847,7 +2851,9 @@ function asuraParseDetails(html){
     const g = gm[1].trim();
     if(g && !gseen[g.toLowerCase()] && g.length < 30){ gseen[g.toLowerCase()] = 1; genres.push(g); }
   }
-  return { cover: cover, desc: desc, genres: genres.slice(0,8) };
+  let type = (html.match(/Type[\s\S]{0,80}?(Manhwa|Manhua|Manga)/i) || html.match(/\b(Manhwa|Manhua)\b/i) || [null,'Manhwa'])[1];
+  type = type ? (type.charAt(0).toUpperCase()+type.slice(1).toLowerCase()) : 'Manhwa';
+  return { cover: cover, desc: desc, genres: genres.slice(0,8), type: type };
 }
 
 async function openAsuraSeries(slug, title){
@@ -2866,7 +2872,7 @@ async function openAsuraSeries(slug, title){
     if(!chapters.length) throw new Error('no chapters found');
     // Premium details header
     const d = asuraParseDetails(html);
-    S.asuraCurrent = { slug, title, chapters, cover: (d.cover ? asuraImg(d.cover) : '') };
+    S.asuraCurrent = { slug, title, chapters, cover: (d.cover ? asuraImg(d.cover) : ''), type: (d.type||'Manhwa') };
     const firstNum = chapters[chapters.length-1];
     head.innerHTML = scanDetailHeader({
       title: (title||slug), source: 'Asura Scans',
@@ -3059,7 +3065,9 @@ function wcParseDetails(html){
       if(g && !gseen[g.toLowerCase()] && !/^(type|status|description|released|tags?)$/i.test(g)){ gseen[g.toLowerCase()]=1; genres.push(g); }
     }
   }
-  return { desc: desc, genres: genres.slice(0,8) };
+  let type = (html.match(/Type[\s\S]{0,80}?(Manhwa|Manhua|Manga)/i) || [null,'Manga'])[1];
+  type = type ? (type.charAt(0).toUpperCase()+type.slice(1).toLowerCase()) : 'Manga';
+  return { desc: desc, genres: genres.slice(0,8), type: type };
 }
 
 async function openWCSeries(id, title){
@@ -3084,6 +3092,7 @@ async function openWCSeries(id, title){
     // Premium details header
     const d = wcParseDetails(both[1] || '');
     const cov = wcImg(wcCover(id));
+    S.wcCurrent.type = (d.type||'Manga');
     const firstChap = chapters[chapters.length-1];
     head.innerHTML = scanDetailHeader({
       title: (title||''), source: 'Weeb Central',
