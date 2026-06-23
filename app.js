@@ -785,7 +785,7 @@ function toggleScanLibrary(source, btn){
     S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
     toast('Removed from library');
   } else {
-    S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(c.type || (source==='asura'?'Manhwa':'Manga')) });
+    S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(c.type || (source==='asura'?'Manhwa':'Manga')), genres:(c.genres||[]) });
     toast('Added to library \u2713');
   }
   save('lyeiuns-library', S.library);
@@ -1643,10 +1643,14 @@ function renderProfile() {
   // Genre DNA
   var genreCount = {};
   S.library.forEach(function(m) {
-    ((m.attributes && m.attributes.tags) || []).forEach(function(t) {
-      var n = t.attributes && t.attributes.name && t.attributes.name.en;
-      if(n) genreCount[n] = (genreCount[n]||0)+1;
-    });
+    if(m._scan){
+      (m.genres||[]).forEach(function(n){ if(n) genreCount[n] = (genreCount[n]||0)+1; });
+    } else {
+      ((m.attributes && m.attributes.tags) || []).forEach(function(t) {
+        var n = t.attributes && t.attributes.name && t.attributes.name.en;
+        if(n) genreCount[n] = (genreCount[n]||0)+1;
+      });
+    }
   });
   var genres = Object.entries(genreCount).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
   var maxG = genres.length ? genres[0][1] : 1;
@@ -1655,18 +1659,19 @@ function renderProfile() {
     var pct = Math.round(g[1]/maxG*100);
     return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:12px;color:var(--text)">'+g[0]+'</span><span style="font-size:11px;color:var(--muted)">'+g[1]+'</span></div><div style="height:4px;background:var(--border);border-radius:2px"><div style="height:100%;width:'+pct+'%;background:var(--manga-red);border-radius:2px"></div></div></div>';
   }).join('') : '<div style="color:var(--muted);font-size:12px">Save manga to see your genres</div>';
-  // Recently read
-  var recent = S.history_items.slice(-6).reverse();
+  // Recently read (newest first, resume to exact spot)
+  var recent = S.history_items.slice(0,6);
   var re2 = document.getElementById('pp-recent');
   if(re2) {
     if(recent.length) {
-      re2.innerHTML = recent.map(function(h) {
-        var hId = h.id || '';
-        return '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;cursor:pointer" onclick="openDetail('+JSON.stringify(hId)+')">' +
-          (h.cover ? '<img src="'+h.cover+'" style="width:44px;height:60px;object-fit:cover;flex-shrink:0">' : '<div style="width:44px;height:60px;background:var(--surface2);flex-shrink:0"></div>') +
+      re2.innerHTML = recent.map(function(h, idx) {
+        var badge = (h.source==='asura')?'ASURA':(h.source==='weeb')?'WEEB':'MANGADEX';
+        var when = h.ts ? timeAgo(new Date(h.ts).toISOString()) : '';
+        return '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;cursor:pointer" onclick="resumeRead('+idx+')">' +
+          (h.cover ? '<img src="'+h.cover+'" style="width:44px;height:60px;object-fit:cover;flex-shrink:0" onerror="this.style.opacity=0.3">' : '<div style="width:44px;height:60px;background:var(--surface2);flex-shrink:0"></div>') +
           '<div style="min-width:0;flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(h.title||'Unknown')+'</div>' +
-          '<div style="font-size:11px;color:var(--muted);margin-top:3px">Ch. '+(h.chapter||'?')+' · '+timeAgo(h.readAt)+'</div></div>' +
-          '<div style="font-size:11px;color:var(--manga-red)">READ ›</div></div>';
+          '<div style="font-size:11px;color:var(--muted);margin-top:3px">Ch. '+(h.chapterNum||'?')+' · '+badge+(when?' · '+when:'')+'</div></div>' +
+          '<div style="font-size:11px;color:var(--manga-red)">RESUME ›</div></div>';
       }).join('');
     } else {
       re2.innerHTML = '<div style="color:var(--muted);font-size:12px">No reading history yet</div>';
@@ -2884,7 +2889,7 @@ async function openAsuraSeries(slug, title){
     if(!chapters.length) throw new Error('no chapters found');
     // Premium details header
     const d = asuraParseDetails(html);
-    S.asuraCurrent = { slug, title, chapters, cover: (d.cover ? asuraImg(d.cover) : ''), type: (d.type||'Manhwa') };
+    S.asuraCurrent = { slug, title, chapters, cover: (d.cover ? asuraImg(d.cover) : ''), type: (d.type||'Manhwa'), genres: (d.genres||[]) };
     const firstNum = chapters[chapters.length-1];
     head.innerHTML = scanDetailHeader({
       title: (title||slug), source: 'Asura Scans',
@@ -3109,6 +3114,7 @@ async function openWCSeries(id, title){
     const d = wcParseDetails(both[1] || '');
     const cov = wcImg(wcCover(id));
     S.wcCurrent.type = (d.type||'Manga');
+    S.wcCurrent.genres = (d.genres||[]);
     const firstChap = chapters[chapters.length-1];
     head.innerHTML = scanDetailHeader({
       title: (title||''), source: 'Weeb Central',
