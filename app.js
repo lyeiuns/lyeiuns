@@ -256,29 +256,40 @@ function mdCard(m, badge) {
 async function loadBanner() {
   const el = document.getElementById('banner-carousel');
   if(!el) return;
+  el.style.height = 'clamp(230px, 44vw, 320px)';
+  el.style.display = 'block';
+  el.style.position = 'relative';
+  el.style.overflow = 'hidden';
   try {
-    const items = await mdList('&order[followedCount]=desc&limit=8');
+    const items = (await getBlendItems()).slice(0,6);
     if(!items.length) throw new Error('empty');
-    S.bannerData = items;
+    S.heroItems = items;
     let cur = 0;
-    function show(i) {
-      const m = items[i];
-      const cov = getCover(m) || '';
+    function show(i){
+      const it = items[i];
       el.innerHTML =
-        '<div class="banner-slide" style="background-image:url(' + cov + ')" onclick="openDetail(\'' + m.id + '\')">' +
-        '<div class="banner-overlay"></div><div class="banner-content">' +
-        '<div class="banner-badge">' + getType(m) + '</div>' +
-        '<div class="banner-title">' + getTitle(m) + '</div>' +
-        '<button class="banner-btn" onclick="event.stopPropagation();openDetail(\'' + m.id + '\')">Read Now</button>' +
-        '</div><div class="banner-dots">' + items.map((_,j)=>'<div class="banner-dot'+(j===i?' active':'')+'" onclick="event.stopPropagation();showBannerSlide('+j+')"></div>').join('') + '</div></div>';
+        '<div style="position:absolute;inset:0;animation:heroFade .7s ease">' +
+          '<div style="position:absolute;inset:0;background:url('+it.cover+') center 20%/cover;filter:brightness(0.5) blur(1px);transform:scale(1.08)"></div>' +
+          '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,8,6,0.98) 8%,rgba(10,8,6,0.35) 55%,rgba(10,8,6,0.55))"></div>' +
+          '<div style="position:absolute;left:0;right:0;bottom:0;padding:18px 18px 22px;display:flex;gap:15px;align-items:flex-end;cursor:pointer" onclick="blendOpen('+i+')">' +
+            '<img src="'+it.cover+'" alt="" style="width:90px;height:128px;object-fit:cover;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.65);flex-shrink:0" onerror="this.style.display=\'none\'">' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-size:10px;letter-spacing:2px;color:var(--manga-red,#e63946);font-weight:700;margin-bottom:6px">\u2605 SPOTLIGHT \u00B7 '+it.label+'</div>' +
+              '<div style="font-family:Bebas Neue,sans-serif;font-size:27px;letter-spacing:1px;line-height:1.02;color:#fff;margin-bottom:11px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+it.title+'</div>' +
+              '<button onclick="event.stopPropagation();blendOpen('+i+')" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:2px;border-radius:22px;cursor:pointer">\u25B6 READ NOW</button>' +
+            '</div>' +
+          '</div>' +
+          '<div style="position:absolute;top:14px;right:16px;display:flex;gap:5px">' +
+            items.map(function(_,j){ return '<div onclick="event.stopPropagation();heroGo('+j+')" style="width:'+(j===i?'20px':'6px')+';height:6px;border-radius:3px;background:'+(j===i?'var(--manga-red,#e63946)':'rgba(255,255,255,0.45)')+';cursor:pointer;transition:all .3s"></div>'; }).join('') +
+          '</div>' +
+        '</div>';
     }
-    window.showBannerSlide = function(i){ cur=i; show(i); };
-    show(0);
-    if(window._bt) clearInterval(window._bt);
-    window._bt = setInterval(()=>{ cur=(cur+1)%items.length; show(cur); }, 5000);
+    window.heroGo = function(i){ cur=i; show(i); resetTimer(); };
+    function resetTimer(){ if(window._bt) clearInterval(window._bt); window._bt = setInterval(function(){ cur=(cur+1)%items.length; show(cur); }, 5000); }
+    show(0); resetTimer();
   } catch(e) {
-    console.error('Banner error:', e.message);
-    el.innerHTML = '<div style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;text-align:center;padding:20px">Banner unavailable<br><span style="font-size:10px;opacity:0.5">'+e.message+'</span></div>';
+    console.error('Hero error:', e.message);
+    el.style.display = 'none';
   }
 }
 function goBanner(i) {

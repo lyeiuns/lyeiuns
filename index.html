@@ -270,6 +270,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
 /* BANNER */
 .banner{position:relative;overflow:hidden;height:0;min-height:0;transition:height 0.3s;}
+@keyframes heroFade{from{opacity:0}to{opacity:1}}
 .banner-slide{position:absolute;inset:0;opacity:0;transition:opacity 0.8s ease;background-size:cover;background-position:center;}
 .banner-slide.active{opacity:1;}
 .banner-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(7,7,13,0.92) 0%,rgba(7,7,13,0.5) 50%,transparent 100%);}
@@ -1356,8 +1357,8 @@ nav::before {
     <div class="section-header"><div class="section-title"><span class="section-num">▶</span> Continue<span class="jp-sub">続きを読む</span></div></div>
     <div id="continue-grid" class="continue-grid"></div>
   </div>
-  <!-- FEATURED MANHWA -->
-  <div class="section" style="padding-top:28px">
+  <!-- FEATURED MANHWA (replaced by hero carousel) -->
+  <div class="section" style="padding-top:28px;display:none">
     <div class="section-header">
       <div class="section-title"><span class="section-num">★</span> Featured<span class="jp-sub">注目作品</span></div>
       <div class="section-actions"><span style="font-size:11px;color:var(--muted)">Tap to explore</span></div>
