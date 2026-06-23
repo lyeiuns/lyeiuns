@@ -88,6 +88,7 @@ const S = {
 // UTILS
 // ═══════════════════════════════════════════
 function getCover(m) {
+  if(m && m._scan) return m.cover||null;
   const r = (m.relationships||[]).find(x=>x.type==='cover_art');
   const fn = r && r.attributes && r.attributes.fileName;
   if(!fn) return null;
@@ -95,6 +96,7 @@ function getCover(m) {
   return CF_PROXY + '/img?url=' + encodeURIComponent(`https://uploads.mangadex.org/covers/${m.id}/${fn}.512.jpg`);
 }
 function getTitle(m) {
+  if(m && m._scan) return m.title||'Untitled';
   const t = m.attributes?.title || {};
   // Prefer English, then romanized, then check altTitles
   if(t.en) return t.en;
@@ -125,6 +127,7 @@ function getOriginalTitle(m) {
   return (orig && orig !== eng) ? orig : null;
 }
 function getType(m) {
+  if(m && m._scan) return m.type||'Manga';
   const o = m.attributes?.originalLanguage;
   if(o==='ko') return 'Manhwa';
   if(o==='zh'||o==='zh-hk') return 'Manhua';
@@ -773,24 +776,21 @@ function removeFromLibrary(id){S.library=S.library.filter(function(m){return m.i
 // ── Scanlation library (save Asura/Weeb titles) ─────────────────────────────
 function libHasScan(source, id){ return S.library.some(function(m){ return m && m._scan && m.source===source && m.id===id; }); }
 function toggleScanLibrary(source, btn){
-  try {
-    const c = source==='asura' ? S.asuraCurrent : S.wcCurrent;
-    if(!c){ alert('DEBUG: no current title ('+source+')'); return; }
-    const id = source==='asura' ? c.slug : c.id;
-    if(!id){ alert('DEBUG: no id'); return; }
-    const exists = libHasScan(source, id);
-    if(exists){
-      S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
-    } else {
-      S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(source==='asura'?'Manhwa':'Manga') });
-    }
-    save('lyeiuns-library', S.library);
-    renderLibrary();
-    if(btn){ const now=!exists; btn.innerHTML = now?'\u2665':'\u2661'; btn.style.background = now?'var(--manga-red,#e63946)':'transparent'; btn.style.color = now?'#fff':'var(--manga-red,#e63946)'; }
-    alert((exists?'Removed':'Saved')+' \u2713  Library now has '+S.library.length+' items');
-  } catch(err){
-    alert('DEBUG error: '+err.message);
+  const c = source==='asura' ? S.asuraCurrent : S.wcCurrent;
+  if(!c) return;
+  const id = source==='asura' ? c.slug : c.id;
+  if(!id) return;
+  const exists = libHasScan(source, id);
+  if(exists){
+    S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
+    toast('Removed from library');
+  } else {
+    S.library.push({ _scan:true, source:source, id:id, title:(c.title||'Untitled'), cover:(c.cover||''), type:(source==='asura'?'Manhwa':'Manga') });
+    toast('Added to library \u2713');
   }
+  save('lyeiuns-library', S.library);
+  renderLibrary();
+  if(btn){ const now=!exists; btn.innerHTML = now?'\u2665':'\u2661'; btn.style.background = now?'var(--manga-red,#e63946)':'transparent'; btn.style.color = now?'#fff':'var(--manga-red,#e63946)'; }
 }
 function removeScanFromLibrary(source, id){
   S.library = S.library.filter(function(m){ return !(m._scan && m.source===source && m.id===id); });
@@ -1054,7 +1054,10 @@ function renderLibraryFiltered() {
     const st = statuses[m.id];
     const statusLabels = {reading:'Reading',completed:'Done','on-hold':'On Hold',dropped:'Dropped',plan:'Plan'};
     const badgeHtml = st ? `<div class="status-badge ${st}">${statusLabels[st]||st}</div>` : '';
-    return `<div class="manga-card" onclick="openDetail('${esc(m.id)}')">
+    const openCall = m._scan
+      ? (m.source==='asura' ? `openAsuraSeries('${m.id}',${JSON.stringify(title)})` : `openWCSeries('${m.id}',${JSON.stringify(title)})`)
+      : `openDetail('${esc(m.id)}')`;
+    return `<div class="manga-card" onclick="${openCall.replace(/"/g,'&quot;')}">
       <div class="manga-cover" style="position:relative">
         ${cover?`<img src="${cover}" alt="" loading="lazy" onerror="this.src=this.src.includes('.512.')?this.src.replace('.512.','.256.'):this.parentElement.innerHTML='<div class=\'manga-cover-placeholder\'>${esc(title)}</div>'">`:`<div class="manga-cover-placeholder">${title}</div>`}
         <div class="manga-badge">${type}</div>
