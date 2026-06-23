@@ -2828,30 +2828,35 @@ function asuraParseSeries(html){
 // ── Shared premium detail components (used by Asura + Weeb) ──────────────────
 function scanDetailHeader(o){
   const cov = o.cover || '';
+  var chips = [];
+  if(o.status) chips.push('<span style="font-size:12px;padding:6px 16px;border:1px solid var(--manga-red,#e63946);border-radius:18px;color:var(--manga-red,#e63946)">'+o.status+'</span>');
+  if(o.year) chips.push('<span style="font-size:12px;padding:6px 16px;border:1px solid var(--border,#2a2420);border-radius:18px;color:var(--muted,#bbb)">'+o.year+'</span>');
+  if(o.latest) chips.push('<span style="font-size:12px;padding:6px 16px;border:1px solid var(--border,#2a2420);border-radius:18px;color:var(--muted,#bbb)">Ch '+o.latest+'</span>');
+  if(o.rating) chips.push('<span style="font-size:12px;padding:6px 16px;border:1px solid var(--border,#2a2420);border-radius:18px;color:#f5c518">\u2605 '+o.rating+'</span>');
+  var saved = o.saveSource && libHasScan(o.saveSource, o.saveId);
   return '' +
-  '<div style="position:relative;margin:-20px -20px 0;height:230px;overflow:hidden">' +
-    (cov ? '<img src="'+cov+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(20px) brightness(0.45);transform:scale(1.15)">' : '') +
-    '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,8,6,0.25),rgba(10,8,6,0.97))"></div>' +
+  // Cinematic blurred banner
+  '<div style="position:relative;margin:-20px -20px 0;height:250px;overflow:hidden">' +
+    (cov ? '<img src="'+cov+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 18%;filter:blur(22px) brightness(0.42);transform:scale(1.18)">' : '') +
+    '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,8,6,0.2),rgba(10,8,6,0.98))"></div>' +
   '</div>' +
-  '<div style="display:flex;gap:16px;margin-top:-130px;position:relative;padding:0 2px">' +
-    (cov ? '<img src="'+cov+'" alt="" style="width:120px;height:172px;object-fit:cover;border-radius:10px;flex-shrink:0;box-shadow:0 10px 30px rgba(0,0,0,0.6)" onerror="this.style.display=\'none\'">' : '') +
-    '<div style="flex:1;min-width:0;padding-top:74px">' +
-      '<div style="font-family:Bebas Neue,sans-serif;font-size:30px;letter-spacing:1px;line-height:1.02">'+o.title+'</div>' +
-      '<div style="color:var(--manga-red,#e63946);font-size:11px;font-weight:700;letter-spacing:1.5px;margin-top:5px">'+(o.source||'').toUpperCase()+'</div>' +
-      (function(){
-        var st = [];
-        if(o.rating) st.push('\u2605 '+o.rating);
-        if(o.status) st.push(o.status);
-        if(o.latest) st.push('Ch '+o.latest);
-        if(o.type) st.push(o.type);
-        return st.length ? '<div style="margin-top:8px;font-size:12px;color:var(--muted,#bbb)">'+st.join(' \u00B7 ')+'</div>' : '';
-      })() +
+  // Crisp cover overlapping the banner
+  '<div style="margin-top:-160px;position:relative">' +
+    (cov ? '<img src="'+cov+'" alt="" style="width:128px;height:184px;object-fit:cover;border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,0.65)" onerror="this.style.display=\'none\'">' : '') +
+    '<div style="margin-top:16px">' +
+      '<div style="font-size:11px;letter-spacing:3px;color:var(--accent2,#a855f7);text-transform:uppercase;font-weight:700;margin-bottom:7px">'+((o.type||'')+(o.source?(o.type?'  \u00B7  ':'')+o.source:''))+'</div>' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:34px;letter-spacing:1px;line-height:1.0;color:#fff">'+o.title+'</div>' +
+      (o.author ? '<div style="margin-top:9px;color:var(--muted,#999);font-size:14px">By <span style="color:var(--accent2,#a855f7)">'+o.author+'</span></div>' : '') +
+      (chips.length ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:13px">'+chips.join('')+'</div>' : '') +
     '</div>' +
   '</div>' +
-  (o.genres && o.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">'+o.genres.map(function(g){return '<span style="font-size:11px;padding:4px 11px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);border-radius:14px;color:var(--muted,#bbb)">'+g+'</span>';}).join('')+'</div>' : '') +
-  (o.desc ? '<div style="font-size:13px;line-height:1.65;color:var(--muted,#b5b0aa);margin-top:14px">'+o.desc+'</div>' : '') +
-  (o.startOnclick ? '<div style="display:flex;gap:10px;margin-top:18px"><button onclick="'+o.startOnclick+'" style="flex:1;padding:15px;background:var(--manga-red,#e63946);border:none;color:#fff;font-family:Bebas Neue,sans-serif;font-size:19px;letter-spacing:2px;border-radius:11px;cursor:pointer">\u25B6 START READING</button>' +
-   (o.saveSource ? '<button onclick="toggleScanLibrary(\''+o.saveSource+'\',this)" style="width:64px;flex-shrink:0;padding:15px 0;background:'+(libHasScan(o.saveSource,o.saveId)?'var(--manga-red,#e63946)':'transparent')+';border:1px solid var(--manga-red,#e63946);color:'+(libHasScan(o.saveSource,o.saveId)?'#fff':'var(--manga-red,#e63946)')+';font-size:20px;border-radius:11px;cursor:pointer">'+(libHasScan(o.saveSource,o.saveId)?'\u2665':'\u2661')+'</button>' : '') +
+  // Description
+  (o.desc ? '<div style="font-size:14px;line-height:1.7;color:var(--muted,#b5b0aa);margin-top:18px">'+o.desc+'</div>' : '') +
+  // Genre grid
+  (o.genres && o.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:18px">'+o.genres.map(function(g){return '<span style="font-size:12px;padding:7px 14px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);border-radius:16px;color:var(--muted,#bbb)">'+g+'</span>';}).join('')+'</div>' : '') +
+  // Action buttons
+  (o.startOnclick ? '<div style="display:flex;gap:10px;margin-top:22px"><button onclick="'+o.startOnclick+'" style="flex:1;padding:16px;background:var(--manga-red,#e63946);border:none;color:#fff;font-family:Bebas Neue,sans-serif;font-size:20px;letter-spacing:2px;border-radius:12px;cursor:pointer">\u25B6 READ NOW</button>' +
+   (o.saveSource ? '<button onclick="toggleScanLibrary(\''+o.saveSource+'\',this)" style="flex-shrink:0;padding:0 22px;background:'+(saved?'var(--manga-red,#e63946)':'transparent')+';border:1px solid var(--manga-red,#e63946);color:'+(saved?'#fff':'var(--manga-red,#e63946)')+';font-size:14px;font-weight:600;border-radius:12px;cursor:pointer">'+(saved?'\u2665 Saved':'\u2661 Save')+'</button>' : '') +
    '</div>' : '');
 }
 function scanReaderNav(prevOnclick, nextOnclick, listOnclick){
@@ -2895,7 +2900,10 @@ function asuraParseDetails(html){
   let status = (html.match(/\b(Ongoing|Completed|Hiatus|Dropped|Cancelled|Season End)\b/i) || [null,''])[1] || '';
   if(status) status = status.charAt(0).toUpperCase()+status.slice(1).toLowerCase();
   let rating = (html.match(/(\d(?:\.\d)?)\s*\/\s*10/) || html.match(/Rating[\s\S]{0,40}?(\d(?:\.\d)?)/i) || [null,''])[1] || '';
-  return { cover: cover, desc: desc, genres: genres.slice(0,8), type: type, status: status, rating: rating };
+  let author = (html.match(/Author[\s\S]{0,90}?>\s*([^<>{}]{2,40}?)\s*</i) || [null,''])[1].trim();
+  if(/^(author|artist|n\/?a|unknown|updating|-|\s)*$/i.test(author)) author='';
+  let year = (html.match(/(?:Released|Serializ|Published)[\s\S]{0,50}?((?:19|20)\d\d)/i) || [null,''])[1] || '';
+  return { cover: cover, desc: desc, genres: genres.slice(0,8), type: type, status: status, rating: rating, author: author, year: year };
 }
 
 async function openAsuraSeries(slug, title){
@@ -2922,7 +2930,7 @@ async function openAsuraSeries(slug, title){
       genres: d.genres, desc: d.desc,
       startOnclick: "openAsuraChapter('"+slug+"',"+firstNum+")",
       saveSource: 'asura', saveId: slug,
-      type: d.type, status: d.status, rating: d.rating, latest: chapters[0]
+      type: d.type, status: d.status, rating: d.rating, latest: chapters[0], author: d.author, year: d.year
     });
     list.innerHTML = chapters.map(function(n){
       return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA', 'asura:'+slug+':'+n);
@@ -3117,7 +3125,10 @@ function wcParseDetails(html){
   type = type ? (type.charAt(0).toUpperCase()+type.slice(1).toLowerCase()) : 'Manga';
   let status = (html.match(/Status[\s\S]{0,60}?(Ongoing|Complete(?:d)?|Hiatus|Cancelled|Dropped)/i) || [null,''])[1] || '';
   if(status){ status = status.charAt(0).toUpperCase()+status.slice(1).toLowerCase(); if(status==='Complete') status='Completed'; }
-  return { desc: desc, genres: genres.slice(0,8), type: type, status: status };
+  let author = (html.match(/Author\(s\)[\s\S]{0,130}?>\s*([^<>{}]{2,40}?)\s*</i) || [null,''])[1].trim();
+  if(/^(author|n\/?a|unknown|updating|-|\s)*$/i.test(author)) author='';
+  let year = (html.match(/Released[\s\S]{0,50}?((?:19|20)\d\d)/i) || [null,''])[1] || '';
+  return { desc: desc, genres: genres.slice(0,8), type: type, status: status, author: author, year: year };
 }
 
 async function openWCSeries(id, title){
@@ -3150,7 +3161,7 @@ async function openWCSeries(id, title){
       cover: cov, genres: d.genres, desc: d.desc,
       startOnclick: "openWCChapter('"+firstChap.id+"','"+firstChap.label.replace(/'/g,"\\'")+"')",
       saveSource: 'weeb', saveId: id,
-      type: d.type, status: d.status, latest: (function(){ var l=((chapters[0]||{}).label)||''; var mm=l.match(/[0-9.]+/); return mm?mm[0]:l; })()
+      type: d.type, status: d.status, latest: (function(){ var l=((chapters[0]||{}).label)||''; var mm=l.match(/[0-9.]+/); return mm?mm[0]:l; })(), author: d.author, year: d.year
     });
     list.innerHTML = chapters.map(function(c){
       return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB', 'weeb:'+c.id);
