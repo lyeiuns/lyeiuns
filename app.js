@@ -421,14 +421,69 @@ async function loadPopular(typeFilter) {
   }
 }
 
+// Pretty title from an Asura slug (strips trailing -<hash>, title-cases).
+function asuraPretty(slug){
+  return slug.replace(/-[a-f0-9]{6,9}$/,'').replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+}
+// Parse latest-updated series from the Asura homepage (best-effort, builds a cover map).
+function asuraParseLatest(html){
+  const covers = {};
+  const cre = /https:\/\/cdn\.asurascans\.com\/asura-images\/covers\/([a-z0-9-]+?)\.[a-f0-9]+(?:-\d+)?\.webp/gi;
+  let cm; while((cm = cre.exec(html))){ if(!covers[cm[1]]) covers[cm[1]] = cm[0]; }
+  const out = [], seen = {};
+  const sre = /\/comics\/([a-z0-9][a-z0-9-]*?)["'\/?#]/gi;
+  let sm;
+  while((sm = sre.exec(html))){
+    const slug = sm[1];
+    if(seen[slug] || slug.length < 3) continue; seen[slug] = 1;
+    const base = slug.replace(/-[a-f0-9]{6,9}$/,'');
+    const cover = covers[base] || covers[slug] || '';
+    out.push({ slug: slug, title: asuraPretty(slug), cover: cover });
+  }
+  return out;
+}
+
+// LIVE "New & Updated" feed — freshest series from Asura + Weeb, refreshes on app open.
 async function loadRecent() {
   const el = document.getElementById('recent-grid');
   if(!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const items = await mdList('&order[createdAt]=desc&limit=24');
-    el.innerHTML = items.map(m=>mdCard(m,'New')).join('') || '<div class="empty"><p>Nothing here</p></div>';
-  } catch(e) {}
+    const results = await Promise.all([
+      (async function(){
+        try {
+          const html = await wcScrape(WC + '/');
+          return wcParseList(html).slice(0,15).map(function(s){
+            return { title:(s.title||s.slug), cover:wcImg(wcCover(s.id)), label:'WEEB',
+              open:(function(id,t){ return function(){ openWCSeries(id,t); }; })(s.id, (s.title||s.slug)) };
+          });
+        } catch(e){ console.error('weeb latest:', e.message); return []; }
+      })(),
+      (async function(){
+        try {
+          const html = await asuraScrape(ASURA + '/');
+          return asuraParseLatest(html).slice(0,15).map(function(s){
+            return { title:s.title, cover:(s.cover?asuraImg(s.cover):''), label:'ASURA',
+              open:(function(slug,t){ return function(){ openAsuraSeries(slug,t); }; })(s.slug, s.title) };
+          });
+        } catch(e){ console.error('asura latest:', e.message); return []; }
+      })()
+    ]);
+    const items = blendInterleave(results);
+    if(!items.length) throw new Error('no updates');
+    S.updatedItems = items;
+    el.innerHTML = items.slice(0,24).map(function(item,i){
+      return '<div class="manga-card" onclick="updatedOpen('+i+')">' +
+        '<div class="manga-cover"><img src="'+(item.cover||'')+'" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+        '<div class="manga-badge">'+item.label+'</div></div>' +
+        '<div class="manga-info"><div class="manga-title">'+item.title+'</div>' +
+        '<div class="manga-sub">'+item.label+'</div></div></div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><p>Couldn\u0027t load updates</p></div>';
+  }
 }
+function updatedOpen(i){ const it=(S.updatedItems||[])[i]; if(it&&typeof it.open==='function') it.open(); }
 
 function switchTab(lang,el) {
   document.querySelectorAll('.home-tab').forEach(t=>t.classList.remove('active'));
