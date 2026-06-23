@@ -331,9 +331,14 @@ async function loadPopular(typeFilter) {
   if(!el) return;
   el.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading...</span></div>';
   try {
-    const items = await getBlendItems();
-    if(!items.length) throw new Error('empty');
-    el.innerHTML = items.slice(0,30).map(function(item, i){
+    const all = await getBlendItems();
+    if(!all.length) throw new Error('empty');
+    // Popular shows the NEXT tier (after Top 10's first 10) so the sections differ.
+    let slice = all.slice(10, 40);
+    if(slice.length < 6) slice = all; // small catalogs: just show everything
+    const offset = (slice === all) ? 0 : 10;
+    el.innerHTML = slice.map(function(item, k){
+      const i = offset + k; // absolute index into S.blendItems for blendOpen
       return '<div class="manga-card" onclick="blendOpen(' + i + ')">' +
         '<div class="manga-cover"><img src="' + item.cover + '" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
         '<div class="manga-badge">' + item.label + '</div></div>' +
