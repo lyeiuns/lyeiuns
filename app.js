@@ -2758,9 +2758,9 @@ async function openAsuraSeries(slug, title){
     const html = await asuraScrape(ASURA + '/comics/' + slug);
     const chapters = asuraParseSeries(html);
     if(!chapters.length) throw new Error('no chapters found');
-    S.asuraCurrent = { slug, title, chapters, cover: (d.cover ? asuraImg(d.cover) : '') };
     // Premium details header
     const d = asuraParseDetails(html);
+    S.asuraCurrent = { slug, title, chapters, cover: (d.cover ? asuraImg(d.cover) : '') };
     const firstNum = chapters[chapters.length-1];
     head.innerHTML = scanDetailHeader({
       title: (title||slug), source: 'Asura Scans',
