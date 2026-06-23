@@ -923,14 +923,14 @@ async function loadTop10() {
   if(!el) return;
   el.innerHTML = Array(6).fill('<div class="top10-skeleton"><div class="skeleton top10-skeleton-cover"></div><div style="flex:1"><div class="skeleton skel-line" style="height:14px;margin-bottom:6px"></div><div class="skeleton skel-line" style="width:60%;height:10px"></div></div></div>').join('');
   try {
-    const items = await mdList('&order[followedCount]=desc&limit=10');
-    el.innerHTML = items.map((m,i)=>{
-      const cov = getCover(m) || '';
-      return '<div class="top10-item" onclick="openDetail(\'' + m.id + '\')">' +
+    const items = (await getBlendItems()).slice(0,10);
+    if(!items.length) throw new Error('empty');
+    el.innerHTML = items.map(function(item, i){
+      return '<div class="top10-item" onclick="blendOpen(' + i + ')">' +
         '<div class="top10-rank">' + String(i+1).padStart(2,'0') + '</div>' +
-        (cov ? '<img class="top10-cover" src="' + cov + '" alt="" loading="lazy">' : '<div class="top10-cover" style="background:var(--surface2)"></div>') +
-        '<div class="top10-info"><div class="top10-title">' + getTitle(m) + '</div>' +
-        '<div class="top10-meta">' + getType(m) + ((m.attributes&&m.attributes.year)?(' · '+m.attributes.year):'') + '</div></div></div>';
+        '<img class="top10-cover" src="' + item.cover + '" alt="" loading="lazy" onerror="this.style.opacity=0.3">' +
+        '<div class="top10-info"><div class="top10-title">' + item.title + '</div>' +
+        '<div class="top10-meta">' + item.label + '</div></div></div>';
     }).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><p>Failed to load</p></div>';
@@ -2945,17 +2945,24 @@ function blendOpen(i){
   if(item && typeof item.open === 'function') item.open();
 }
 
+
+// Shared cached blend of all scanlation sources (used by Trending + Top10).
+async function getBlendItems(){
+  if(S.blendItems && S.blendItems.length) return S.blendItems;
+  const results = await Promise.all(SCAN_SOURCES.map(function(src){
+    return src.load().catch(function(e){ console.error(src.id+' load failed:', e.message); return []; });
+  }));
+  const blended = blendInterleave(results);
+  S.blendItems = blended;
+  return blended;
+}
+
 async function loadBlend(){
   const el = document.getElementById('blend-grid');
   if(!el) return;
   try {
-    // Load every source in parallel; if one fails, the others still show.
-    const results = await Promise.all(SCAN_SOURCES.map(function(src){
-      return src.load().catch(function(e){ console.error(src.id+' blend load failed:', e.message); return []; });
-    }));
-    const blended = blendInterleave(results);
+    const blended = await getBlendItems();
     if(!blended.length) throw new Error('no sources returned items');
-    S.blendItems = blended;
     el.innerHTML = blended.slice(0,30).map(function(item,i){ return blendCard(item,i); }).join('');
   } catch(e){
     el.innerHTML = '<div class="empty"><p>Trending unavailable</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
