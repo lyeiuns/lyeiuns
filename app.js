@@ -2838,13 +2838,14 @@ function scanDetailHeader(o){
    (o.saveSource ? '<button onclick="toggleScanLibrary(\''+o.saveSource+'\',this)" style="width:64px;flex-shrink:0;padding:15px 0;background:'+(libHasScan(o.saveSource,o.saveId)?'var(--manga-red,#e63946)':'transparent')+';border:1px solid var(--manga-red,#e63946);color:'+(libHasScan(o.saveSource,o.saveId)?'#fff':'var(--manga-red,#e63946)')+';font-size:20px;border-radius:11px;cursor:pointer">'+(libHasScan(o.saveSource,o.saveId)?'\u2665':'\u2661')+'</button>' : '') +
    '</div>' : '');
 }
-function scanChapterRow(onclick, label, source){
+function scanChapterRow(onclick, label, source, readKey){
+  var read = readKey && isChRead(readKey);
   return '<div onclick="'+onclick+'" ' +
-    'onmouseover="this.style.background=\'#241c14\';this.style.borderColor=\'var(--manga-red,#e63946)\'" ' +
-    'onmouseout="this.style.background=\'var(--surface,#15110d)\';this.style.borderColor=\'var(--border,#221c17)\'" ' +
-    'style="padding:14px 16px;background:var(--surface,#15110d);border:1px solid var(--border,#221c17);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s,border-color .15s">' +
-    '<span style="font-weight:600;font-size:14px">'+label+'</span>' +
-    '<span style="color:var(--muted,#777);font-size:11px;letter-spacing:1px">'+source+' \u203A</span></div>';
+    'onmouseover="this.style.borderColor=\'var(--manga-red,#e63946)\'" ' +
+    'onmouseout="this.style.borderColor=\'var(--border,#221c17)\'" ' +
+    'style="padding:14px 16px;background:var(--surface,#15110d);border:1px solid var(--border,#221c17);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s;opacity:'+(read?'0.5':'1')+'">' +
+    '<span style="font-weight:600;font-size:14px">'+(read?'\u2713 ':'')+label+'</span>' +
+    '<span style="color:'+(read?'var(--manga-red,#e63946)':'var(--muted,#777)')+';font-size:11px;letter-spacing:1px">'+(read?'READ':source)+' \u203A</span></div>';
 }
 
 // Parse cover, description, genres from an Asura series page.
@@ -2894,7 +2895,7 @@ async function openAsuraSeries(slug, title){
       type: d.type, status: d.status, rating: d.rating, latest: chapters[0]
     });
     list.innerHTML = chapters.map(function(n){
-      return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA');
+      return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA', 'asura:'+slug+':'+n);
     }).join('');
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
@@ -2949,6 +2950,7 @@ async function openAsuraChapter(slug, num){
       '<div style="text-align:center;padding:24px"><button onclick="backToAsuraChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">\u2190 Chapter list</button></div></div>';
     var _ac = S.asuraCurrent || {};
     saveReadHistory({source:'asura', id:slug, title:(_ac.title||slug), cover:(_ac.cover||''), chapterNum:num, chapterRef:num, pct:0});
+    markChRead('asura:'+slug+':'+num);
     attachOverlayScroll(document.getElementById('asura-overlay'));
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
@@ -3116,7 +3118,7 @@ async function openWCSeries(id, title){
       type: d.type, status: d.status, latest: (function(){ var l=((chapters[0]||{}).label)||''; var mm=l.match(/[0-9.]+/); return mm?mm[0]:l; })()
     });
     list.innerHTML = chapters.map(function(c){
-      return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB');
+      return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB', 'weeb:'+c.id);
     }).join('');
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
@@ -3166,6 +3168,7 @@ async function openWCChapter(chapId, label){
       '<div style="text-align:center;padding:24px"><button onclick="backToWCChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button></div></div>';
     var _wc = S.wcCurrent || {};
     saveReadHistory({source:'weeb', id:(_wc.id||''), title:(_wc.title||''), cover:(_wc.cover||''), chapterNum:label, chapterRef:chapId, pct:0});
+    markChRead('weeb:'+chapId);
     attachOverlayScroll(document.getElementById('wc-overlay'));
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
