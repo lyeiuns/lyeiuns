@@ -2826,7 +2826,7 @@ function scanDetailHeader(o){
         var st = [];
         if(o.rating) st.push('\u2605 '+o.rating);
         if(o.status) st.push(o.status);
-        if(o.chapterCount) st.push(o.chapterCount+' ch');
+        if(o.latest) st.push('Ch '+o.latest);
         if(o.type) st.push(o.type);
         return st.length ? '<div style="margin-top:8px;font-size:12px;color:var(--muted,#bbb)">'+st.join(' \u00B7 ')+'</div>' : '';
       })() +
@@ -2891,7 +2891,7 @@ async function openAsuraSeries(slug, title){
       genres: d.genres, desc: d.desc,
       startOnclick: "openAsuraChapter('"+slug+"',"+firstNum+")",
       saveSource: 'asura', saveId: slug,
-      type: d.type, status: d.status, rating: d.rating, chapterCount: chapters.length
+      type: d.type, status: d.status, rating: d.rating, latest: chapters[0]
     });
     list.innerHTML = chapters.map(function(n){
       return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA');
@@ -3113,7 +3113,7 @@ async function openWCSeries(id, title){
       cover: cov, genres: d.genres, desc: d.desc,
       startOnclick: "openWCChapter('"+firstChap.id+"','"+firstChap.label.replace(/'/g,"\\'")+"')",
       saveSource: 'weeb', saveId: id,
-      type: d.type, status: d.status, chapterCount: chapters.length
+      type: d.type, status: d.status, latest: (function(){ var l=((chapters[0]||{}).label)||''; var mm=l.match(/[0-9.]+/); return mm?mm[0]:l; })()
     });
     list.innerHTML = chapters.map(function(c){
       return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB');
