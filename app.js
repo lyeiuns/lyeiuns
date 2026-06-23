@@ -2638,6 +2638,21 @@ function asuraParseSeries(html){
   return chapters;
 }
 
+// Parse cover, description, genres from an Asura series page.
+function asuraParseDetails(html){
+  const cover = (html.match(/https:\/\/cdn\.asurascans\.com\/asura-images\/covers\/[^"'\s]+?\.webp/i) || [null])[0];
+  let desc = (html.match(/name="description"\s+content="([^"]*)"/i) || html.match(/property="og:description"\s+content="([^"]*)"/i) || [null,''])[1] || '';
+  desc = desc.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  const genres = [], gseen = {};
+  const gre = /browse\?genres=[^"']*"[^>]*>\s*([^<]+?)\s*</gi;
+  let gm;
+  while((gm = gre.exec(html))){
+    const g = gm[1].trim();
+    if(g && !gseen[g.toLowerCase()] && g.length < 30){ gseen[g.toLowerCase()] = 1; genres.push(g); }
+  }
+  return { cover: cover, desc: desc, genres: genres.slice(0,8) };
+}
+
 async function openAsuraSeries(slug, title){
   const ov = document.getElementById('asura-overlay');
   const head = document.getElementById('asura-detail-head');
@@ -2653,6 +2668,18 @@ async function openAsuraSeries(slug, title){
     const chapters = asuraParseSeries(html);
     if(!chapters.length) throw new Error('no chapters found');
     S.asuraCurrent = { slug, title, chapters };
+    // Rich details header (cover + genres + description)
+    const d = asuraParseDetails(html);
+    head.innerHTML =
+      '<div style="display:flex;gap:14px;align-items:flex-start">' +
+        (d.cover ? '<img src="'+asuraImg(d.cover)+'" alt="" style="width:96px;height:136px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">' : '') +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px;line-height:1.1">'+(title||slug)+'</div>' +
+          '<div style="color:var(--muted,#888);font-size:11px;margin:4px 0 8px">Asura Scans</div>' +
+          (d.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px">'+d.genres.map(function(g){return '<span style="font-size:10px;padding:3px 8px;border:1px solid var(--border,#2a2420);border-radius:12px;color:var(--muted,#aaa)">'+g+'</span>';}).join('')+'</div>' : '') +
+        '</div>' +
+      '</div>' +
+      (d.desc ? '<div style="font-size:13px;line-height:1.5;color:var(--muted,#bbb);margin-top:12px">'+d.desc+'</div>' : '');
     list.innerHTML = chapters.map(function(n){
       return '<div onclick="openAsuraChapter(\''+slug+'\','+n+')" style="padding:12px 14px;border:1px solid var(--border,#2a2420);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
         '<span>Chapter '+n+'</span><span style="color:var(--muted,#888);font-size:11px">ASURA</span></div>';
@@ -2820,6 +2847,24 @@ function wcParseChapters(html){
   return out;
 }
 
+// Parse description + genres from a Weeb Central series page.
+function wcParseDetails(html){
+  let desc = (html.match(/property="og:description"\s+content="([^"]*)"/i) || html.match(/name="description"\s+content="([^"]*)"/i) || [null,''])[1] || '';
+  desc = desc.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&#x27;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  // Genres: the "Tags(s):" block lists them as links/text before "Type"
+  const genres = [];
+  const tagBlock = html.match(/Tags?\(s\)[\s\S]{0,600}?(?:Type|Status|Description)/i);
+  if(tagBlock){
+    const re = /<a[^>]*>\s*([A-Za-z][A-Za-z \-]{1,24})\s*<\/a>/g;
+    let m, gseen = {};
+    while((m = re.exec(tagBlock[0]))){
+      const g = m[1].trim();
+      if(g && !gseen[g.toLowerCase()] && !/^(type|status|description|released|tags?)$/i.test(g)){ gseen[g.toLowerCase()]=1; genres.push(g); }
+    }
+  }
+  return { desc: desc, genres: genres.slice(0,8) };
+}
+
 async function openWCSeries(id, title){
   const ov = document.getElementById('wc-overlay');
   const head = document.getElementById('wc-detail-head');
@@ -2831,10 +2876,27 @@ async function openWCSeries(id, title){
                    '<div style="color:var(--muted,#888);font-size:12px;margin-top:4px">Weeb Central</div>';
   list.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
   try {
-    const html = await wcScrape(WC + '/series/' + id + '/full-chapter-list');
+    const both = await Promise.all([
+      wcScrape(WC + '/series/' + id + '/full-chapter-list'),
+      wcScrape(WC + '/series/' + id).catch(function(){ return ''; })
+    ]);
+    const html = both[0];
     const chapters = wcParseChapters(html);
     if(!chapters.length) throw new Error('no chapters found');
     S.wcCurrent = { id: id, title: title, chapters: chapters };
+    // Rich details header (cover + genres + description)
+    const d = wcParseDetails(both[1] || '');
+    const cov = wcImg(wcCover(id));
+    head.innerHTML =
+      '<div style="display:flex;gap:14px;align-items:flex-start">' +
+        '<img src="'+cov+'" alt="" style="width:96px;height:136px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px;line-height:1.1">'+(title||'')+'</div>' +
+          '<div style="color:var(--muted,#888);font-size:11px;margin:4px 0 8px">Weeb Central</div>' +
+          (d.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px">'+d.genres.map(function(g){return '<span style="font-size:10px;padding:3px 8px;border:1px solid var(--border,#2a2420);border-radius:12px;color:var(--muted,#aaa)">'+g+'</span>';}).join('')+'</div>' : '') +
+        '</div>' +
+      '</div>' +
+      (d.desc ? '<div style="font-size:13px;line-height:1.5;color:var(--muted,#bbb);margin-top:12px">'+d.desc+'</div>' : '');
     list.innerHTML = chapters.map(function(c){
       return '<div onclick="openWCChapter(\''+c.id+'\',\''+c.label.replace(/'/g,"\\'")+'\')" style="padding:12px 14px;border:1px solid var(--border,#2a2420);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
         '<span>'+c.label+'</span><span style="color:var(--muted,#888);font-size:11px">WEEB</span></div>';
