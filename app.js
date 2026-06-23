@@ -2873,14 +2873,16 @@ function scanReaderNav(prevOnclick, nextOnclick, listOnclick){
     btn(nextOnclick,'Next \u2192',true) +
   '</div>';
 }
-function scanChapterRow(onclick, label, source, readKey){
+function scanChapterRow(onclick, label, source, readKey, date){
   var read = readKey && isChRead(readKey);
+  var ago = '';
+  if(date){ try{ ago = timeAgo(new Date(date).toISOString()); }catch(e){} }
   return '<div onclick="'+onclick+'" ' +
     'onmouseover="this.style.borderColor=\'var(--manga-red,#e63946)\'" ' +
     'onmouseout="this.style.borderColor=\'var(--border,#221c17)\'" ' +
     'style="padding:14px 16px;background:var(--surface,#15110d);border:1px solid var(--border,#221c17);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s;opacity:'+(read?'0.5':'1')+'">' +
     '<span style="font-weight:600;font-size:14px">'+(read?'\u2713 ':'')+label+'</span>' +
-    '<span style="color:'+(read?'var(--manga-red,#e63946)':'var(--muted,#777)')+';font-size:11px;letter-spacing:1px">'+(read?'READ':source)+' \u203A</span></div>';
+    '<span style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">' + (ago?'<span style="color:var(--muted,#777);font-size:10px">'+ago+'</span>':'') + '<span style="color:'+(read?'var(--manga-red,#e63946)':'var(--muted,#777)')+';font-size:11px;letter-spacing:1px">'+(read?'READ':source)+' \u203A</span></span></div>';
 }
 
 // Parse cover, description, genres from an Asura series page.
@@ -3099,9 +3101,12 @@ function wcParseChapters(html){
     const id = m[1];
     if(seen[id]) continue;
     seen[id] = 1;
-    let label = m[2].replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    var inner = m[2];
+    var dm = inner.match(/datetime="([^"]+)"/i);
+    var date = dm ? dm[1] : '';
+    var label = inner.replace(/<time[\s\S]*?<\/time>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     if(!label) label = 'Chapter';
-    out.push({ id: id, label: label });
+    out.push({ id: id, label: label, date: date });
   }
   return out;
 }
@@ -3164,7 +3169,7 @@ async function openWCSeries(id, title){
       type: d.type, status: d.status, latest: (function(){ var l=((chapters[0]||{}).label)||''; var mm=l.match(/[0-9.]+/); return mm?mm[0]:l; })(), author: d.author, year: d.year
     });
     list.innerHTML = chapters.map(function(c){
-      return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB', 'weeb:'+c.id);
+      return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB', 'weeb:'+c.id, c.date);
     }).join('');
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
