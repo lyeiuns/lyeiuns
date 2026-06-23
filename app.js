@@ -2843,6 +2843,20 @@ function scanDetailHeader(o){
    (o.saveSource ? '<button onclick="toggleScanLibrary(\''+o.saveSource+'\',this)" style="width:64px;flex-shrink:0;padding:15px 0;background:'+(libHasScan(o.saveSource,o.saveId)?'var(--manga-red,#e63946)':'transparent')+';border:1px solid var(--manga-red,#e63946);color:'+(libHasScan(o.saveSource,o.saveId)?'#fff':'var(--manga-red,#e63946)')+';font-size:20px;border-radius:11px;cursor:pointer">'+(libHasScan(o.saveSource,o.saveId)?'\u2665':'\u2661')+'</button>' : '') +
    '</div>' : '');
 }
+function scanReaderNav(prevOnclick, nextOnclick, listOnclick){
+  function btn(onc, label, primary){
+    var on = !!onc;
+    return '<button '+(on?'onclick="'+onc+'"':'disabled')+' style="flex:1;padding:13px 8px;border-radius:9px;font-weight:600;font-size:13px;cursor:'+(on?'pointer':'default')+';'+
+      (primary
+        ? 'background:'+(on?'var(--manga-red,#e63946)':'#17120e')+';border:none;color:'+(on?'#fff':'#555')+';'
+        : 'background:'+(on?'var(--surface,#1a1410)':'#17120e')+';border:1px solid var(--border,#2a2420);color:'+(on?'#fff':'#555')+';')+'">'+label+'</button>';
+  }
+  return '<div style="display:flex;gap:8px;max-width:800px;margin:0 auto;padding:20px 0 32px">' +
+    btn(prevOnclick,'\u2190 Prev',false) +
+    btn(listOnclick,'List',false) +
+    btn(nextOnclick,'Next \u2192',true) +
+  '</div>';
+}
 function scanChapterRow(onclick, label, source, readKey){
   var read = readKey && isChRead(readKey);
   return '<div onclick="'+onclick+'" ' +
@@ -2950,9 +2964,13 @@ async function openAsuraChapter(slug, num){
     const html = await asuraScrape(ASURA + '/comics/' + slug + '/chapter/' + num);
     const pages = asuraParsePages(html);
     if(!pages.length) throw new Error('no pages found');
+    var _ach = (S.asuraCurrent||{}).chapters || [];
+    var _ai = _ach.indexOf(num);
+    var _aPrev = (_ai>=0 && _ai+1<_ach.length) ? "openAsuraChapter('"+slug+"',"+_ach[_ai+1]+")" : '';
+    var _aNext = (_ai>0) ? "openAsuraChapter('"+slug+"',"+_ach[_ai-1]+")" : '';
     list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
       pages.map(function(u){ return '<img src="' + asuraImg(u) + '" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
-      '<div style="text-align:center;padding:24px"><button onclick="backToAsuraChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">\u2190 Chapter list</button></div></div>';
+      scanReaderNav(_aPrev, _aNext, "backToAsuraChapters()") + '</div>';
     var _ac = S.asuraCurrent || {};
     saveReadHistory({source:'asura', id:slug, title:(_ac.title||slug), cover:(_ac.cover||''), chapterNum:num, chapterRef:num, pct:0});
     markChRead('asura:'+slug+':'+num);
@@ -3169,9 +3187,15 @@ async function openWCChapter(chapId, label){
     const html = await wcScrape(url);
     const pages = wcParsePages(html);
     if(!pages.length) throw new Error('no pages found');
+    var _wch = (S.wcCurrent||{}).chapters || [];
+    var _wi = -1;
+    for(var _k=0;_k<_wch.length;_k++){ if(_wch[_k].id===chapId){ _wi=_k; break; } }
+    function _wCall(idx){ if(idx<0||idx>=_wch.length) return ''; var c=_wch[idx]; return "openWCChapter('"+c.id+"','"+String(c.label).replace(/'/g,"\\'")+"')"; }
+    var _wPrev = (_wi>=0) ? _wCall(_wi+1) : '';
+    var _wNext = (_wi>0) ? _wCall(_wi-1) : '';
     list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
       pages.map(function(u){ return '<img src="'+wcImg(u)+'" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
-      '<div style="text-align:center;padding:24px"><button onclick="backToWCChapters()" style="padding:10px 24px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:8px;cursor:pointer">← Chapter list</button></div></div>';
+      scanReaderNav(_wPrev, _wNext, "backToWCChapters()") + '</div>';
     var _wc = S.wcCurrent || {};
     saveReadHistory({source:'weeb', id:(_wc.id||''), title:(_wc.title||''), cover:(_wc.cover||''), chapterNum:label, chapterRef:chapId, pct:0});
     markChRead('weeb:'+chapId);
