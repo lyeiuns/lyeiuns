@@ -2822,6 +2822,14 @@ function scanDetailHeader(o){
     '<div style="flex:1;min-width:0;padding-top:74px">' +
       '<div style="font-family:Bebas Neue,sans-serif;font-size:30px;letter-spacing:1px;line-height:1.02">'+o.title+'</div>' +
       '<div style="color:var(--manga-red,#e63946);font-size:11px;font-weight:700;letter-spacing:1.5px;margin-top:5px">'+(o.source||'').toUpperCase()+'</div>' +
+      (function(){
+        var st = [];
+        if(o.rating) st.push('\u2605 '+o.rating);
+        if(o.status) st.push(o.status);
+        if(o.chapterCount) st.push(o.chapterCount+' ch');
+        if(o.type) st.push(o.type);
+        return st.length ? '<div style="margin-top:8px;font-size:12px;color:var(--muted,#bbb)">'+st.join(' \u00B7 ')+'</div>' : '';
+      })() +
     '</div>' +
   '</div>' +
   (o.genres && o.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">'+o.genres.map(function(g){return '<span style="font-size:11px;padding:4px 11px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);border-radius:14px;color:var(--muted,#bbb)">'+g+'</span>';}).join('')+'</div>' : '') +
@@ -2853,7 +2861,10 @@ function asuraParseDetails(html){
   }
   let type = (html.match(/Type[\s\S]{0,80}?(Manhwa|Manhua|Manga)/i) || html.match(/\b(Manhwa|Manhua)\b/i) || [null,'Manhwa'])[1];
   type = type ? (type.charAt(0).toUpperCase()+type.slice(1).toLowerCase()) : 'Manhwa';
-  return { cover: cover, desc: desc, genres: genres.slice(0,8), type: type };
+  let status = (html.match(/\b(Ongoing|Completed|Hiatus|Dropped|Cancelled|Season End)\b/i) || [null,''])[1] || '';
+  if(status) status = status.charAt(0).toUpperCase()+status.slice(1).toLowerCase();
+  let rating = (html.match(/(\d(?:\.\d)?)\s*\/\s*10/) || html.match(/Rating[\s\S]{0,40}?(\d(?:\.\d)?)/i) || [null,''])[1] || '';
+  return { cover: cover, desc: desc, genres: genres.slice(0,8), type: type, status: status, rating: rating };
 }
 
 async function openAsuraSeries(slug, title){
@@ -2879,7 +2890,8 @@ async function openAsuraSeries(slug, title){
       cover: d.cover ? asuraImg(d.cover) : '',
       genres: d.genres, desc: d.desc,
       startOnclick: "openAsuraChapter('"+slug+"',"+firstNum+")",
-      saveSource: 'asura', saveId: slug
+      saveSource: 'asura', saveId: slug,
+      type: d.type, status: d.status, rating: d.rating, chapterCount: chapters.length
     });
     list.innerHTML = chapters.map(function(n){
       return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA');
@@ -3067,7 +3079,9 @@ function wcParseDetails(html){
   }
   let type = (html.match(/Type[\s\S]{0,80}?(Manhwa|Manhua|Manga)/i) || [null,'Manga'])[1];
   type = type ? (type.charAt(0).toUpperCase()+type.slice(1).toLowerCase()) : 'Manga';
-  return { desc: desc, genres: genres.slice(0,8), type: type };
+  let status = (html.match(/Status[\s\S]{0,60}?(Ongoing|Complete(?:d)?|Hiatus|Cancelled|Dropped)/i) || [null,''])[1] || '';
+  if(status){ status = status.charAt(0).toUpperCase()+status.slice(1).toLowerCase(); if(status==='Complete') status='Completed'; }
+  return { desc: desc, genres: genres.slice(0,8), type: type, status: status };
 }
 
 async function openWCSeries(id, title){
@@ -3098,7 +3112,8 @@ async function openWCSeries(id, title){
       title: (title||''), source: 'Weeb Central',
       cover: cov, genres: d.genres, desc: d.desc,
       startOnclick: "openWCChapter('"+firstChap.id+"','"+firstChap.label.replace(/'/g,"\\'")+"')",
-      saveSource: 'weeb', saveId: id
+      saveSource: 'weeb', saveId: id,
+      type: d.type, status: d.status, chapterCount: chapters.length
     });
     list.innerHTML = chapters.map(function(c){
       return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB');
