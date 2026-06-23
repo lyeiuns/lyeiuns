@@ -404,6 +404,11 @@ function resumeRead(i){
     if(ov) ov.style.display = 'block';
     openWCChapter(e.chapterRef, e.chapterNum);
     _restoreScroll(function(){ return document.getElementById('wc-overlay'); }, e.pct);
+  } else if(THEMESIA_SITES[src]){
+    const ov = document.getElementById('tm-overlay');
+    if(ov) ov.style.display = 'block';
+    openThemesiaChapter(src, e.chapterRef, e.chapterNum, 'Chapter '+e.chapterNum);
+    _restoreScroll(function(){ return document.getElementById('tm-overlay'); }, e.pct);
   } else {
     openDetail(e.id);
   }
@@ -763,7 +768,9 @@ function renderLibrary(filter) {
     if(m._scan){
       var sOpen = m.source==='asura'
         ? "openAsuraSeries('"+m.id+"',"+JSON.stringify(m.title)+")"
-        : "openWCSeries('"+m.id+"',"+JSON.stringify(m.title)+")";
+        : (m.source==='weeb'
+            ? "openWCSeries('"+m.id+"',"+JSON.stringify(m.title)+")"
+            : "openThemesiaSeries('"+m.source+"','"+m.id+"',"+JSON.stringify(m.title)+")");
       var sCov = m.cover
         ? '<img src="'+m.cover+'" style="width:56px;height:76px;object-fit:cover;flex-shrink:0" onerror="this.style.opacity=0.3">'
         : '<div style="width:56px;height:76px;background:var(--surface2);flex-shrink:0"></div>';
@@ -805,9 +812,9 @@ function removeFromLibrary(id){S.library=S.library.filter(function(m){return m.i
 // ── Scanlation library (save Asura/Weeb titles) ─────────────────────────────
 function libHasScan(source, id){ return S.library.some(function(m){ return m && m._scan && m.source===source && m.id===id; }); }
 function toggleScanLibrary(source, btn){
-  const c = source==='asura' ? S.asuraCurrent : S.wcCurrent;
+  var c = source==='asura' ? S.asuraCurrent : source==='weeb' ? S.wcCurrent : (THEMESIA_SITES[source] ? S.tmCurrent : null);
   if(!c) return;
-  const id = source==='asura' ? c.slug : c.id;
+  var id = (source==='weeb') ? c.id : c.slug;
   if(!id) return;
   const exists = libHasScan(source, id);
   if(exists){
@@ -1084,7 +1091,9 @@ function renderLibraryFiltered() {
     const statusLabels = {reading:'Reading',completed:'Done','on-hold':'On Hold',dropped:'Dropped',plan:'Plan'};
     const badgeHtml = st ? `<div class="status-badge ${st}">${statusLabels[st]||st}</div>` : '';
     const openCall = m._scan
-      ? (m.source==='asura' ? `openAsuraSeries('${m.id}',${JSON.stringify(title)})` : `openWCSeries('${m.id}',${JSON.stringify(title)})`)
+      ? (m.source==='asura' ? `openAsuraSeries('${m.id}',${JSON.stringify(title)})`
+         : m.source==='weeb' ? `openWCSeries('${m.id}',${JSON.stringify(title)})`
+         : `openThemesiaSeries('${m.source}','${m.id}',${JSON.stringify(title)})`)
       : `openDetail('${esc(m.id)}')`;
     const rmCall = m._scan
       ? `removeScanFromLibrary(${JSON.stringify(m.source)},${JSON.stringify(m.id)})`
@@ -3286,7 +3295,10 @@ const SCAN_SOURCES = [
                  open: (function(idx){ return function(){ openWCByIdx(idx); }; })(i) };
       });
     }
-  }
+  },
+  { id:'violet',  label:'VIOLET',  load: function(){ return loadThemesia('violet'); } },
+  { id:'thunder', label:'THUNDER', load: function(){ return loadThemesia('thunder'); } },
+  { id:'lua',     label:'LUA',     load: function(){ return loadThemesia('lua'); } }
   // ── To add a source later, add { id, label, load } here. ──
 ];
 
@@ -3394,3 +3406,157 @@ function loadSourceTabs(){
 
 // Replace the old separate loadAsura/loadWeebCentral kickoffs
 setTimeout(function(){ loadSourceTabs(); }, 2400);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  THEMESIA / mangareader WordPress sites — Violet, Thunder, Lua (same theme)
+//  One scraper handles all three (server-rendered HTML, /comics/<slug>/ series,
+//  /<slug>-chapter-<n>/ chapters, wp-content/uploads/manga/<hash>/NN.jpg pages).
+// ═══════════════════════════════════════════════════════════════════════════
+const THEMESIA_SITES = {
+  violet:  { id:'violet',  label:'VIOLET',  name:'Violet Scans',  base:'https://violetscans.org' },
+  thunder: { id:'thunder', label:'THUNDER', name:'Thunder Scans', base:'https://en-thunderscans.com' },
+  lua:     { id:'lua',     label:'LUA',     name:'Lua Comic',     base:'https://luacomic.org' }
+};
+function tmImg(u){ return CF_PROXY + '/img?url=' + encodeURIComponent(u); }
+async function tmScrape(u){ const r = await fetch(CF_PROXY + '/scrape?url=' + encodeURIComponent(u)); if(!r.ok) throw new Error('scrape ' + r.status); return await r.text(); }
+function tmEsc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function tmDecode(s){ return (s||'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#0?39;/g,"'").replace(/&#x27;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' '); }
+function tmTitleFromSlug(slug){ try{slug=decodeURIComponent(slug);}catch(e){} return slug.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}); }
+
+// Parse series cards from a homepage / comics listing
+function tmParseList(html, base){
+  const out=[], seen={};
+  const re = new RegExp('<a[^>]+href="'+tmEsc(base)+'/comics/([^"/]+)/"[^>]*>([\\s\\S]{0,600}?)</a>','gi');
+  let m;
+  while((m = re.exec(html))){
+    const slug = m[1];
+    if(seen[slug] || slug==='') continue; seen[slug]=1;
+    const whole = m[0], block = m[2];
+    const titleM = whole.match(/title="([^"]*)"/i);
+    let cover='';
+    const imgM = block.match(/<img[^>]+(?:data-src|data-lazy-src|src)="([^"]+)"/i);
+    if(imgM) cover = imgM[1];
+    if(/data:image|placeholder/i.test(cover)){ const d=block.match(/data-(?:src|lazy-src)="([^"]+)"/i); if(d)cover=d[1]; }
+    out.push({ slug:slug, title:(titleM?tmDecode(titleM[1]):tmTitleFromSlug(slug)), cover:cover });
+  }
+  return out;
+}
+
+// Parse chapter list from a series page → [{path,num,label}] newest-first
+function tmParseChapters(html, base){
+  const out=[], seen={};
+  const re = new RegExp('href="'+tmEsc(base)+'/([^"/]+-chapter-[^"/]+)/"','gi');
+  let m;
+  while((m = re.exec(html))){
+    const path = m[1];
+    if(seen[path]) continue; seen[path]=1;
+    const nm = path.match(/-chapter-([0-9]+(?:[.-][0-9]+)?)/i);
+    const num = nm ? nm[1].replace('-', '.') : path;
+    out.push({ path:path, num:num, label:'Chapter '+num });
+  }
+  return out;
+}
+
+function tmParseDetails(html){
+  const cover = (html.match(/og:image"\s+content="([^"]+)"/i) || [null,''])[1];
+  let desc = tmDecode((html.match(/og:description"\s+content="([^"]*)"/i) || html.match(/name="description"\s+content="([^"]*)"/i) || [null,''])[1] || '');
+  desc = desc.replace(/^Read [^:]+:\s*/i,'');
+  const genres=[], gs={};
+  const gre=/\/genres\/[^"']+\/"[^>]*>\s*([^<]+?)\s*</gi; let g;
+  while((g=gre.exec(html))){ const n=g[1].trim(); if(n && !gs[n.toLowerCase()] && n.length<24 && !/manga/i.test(n)){ gs[n.toLowerCase()]=1; genres.push(n); } }
+  let type=(html.match(/Type[\s\S]{0,140}?\b(Manhwa|Manhua|Manga)\b/i)||[null,''])[1]||'';
+  if(type) type=type.charAt(0).toUpperCase()+type.slice(1).toLowerCase();
+  let status=(html.match(/Status[\s\S]{0,140}?\b(Ongoing|Completed|Hiatus|Dropped|Cancelled)\b/i)||[null,''])[1]||'';
+  if(status) status=status.charAt(0).toUpperCase()+status.slice(1).toLowerCase();
+  const year=(html.match(/Released[\s\S]{0,140}?((?:19|20)\d\d)/i)||[null,''])[1]||'';
+  const rating=(html.match(/(\d(?:\.\d)?)\s*\/\s*10/)||[null,''])[1]||'';
+  return { cover:cover, desc:desc, genres:genres.slice(0,8), type:type, status:status, year:year, rating:rating };
+}
+
+// Extract page images (ts_reader embeds them under /wp-content/uploads/manga/)
+function tmParsePages(html){
+  const out=[], seen={};
+  const re=/https?:(?:\\?\/){2}[^"'\s\\]+?\/wp-content\/uploads\/[^"'\s\\]+?\.(?:jpg|jpeg|png|webp)/gi;
+  let m;
+  while((m=re.exec(html))){
+    let u=m[0].replace(/\\\//g,'/');
+    if(seen[u]) continue;
+    if(/\/(themes|plugins|avatar|icons?|logo|banner|reactions?|cropped)\b/i.test(u)) continue;
+    seen[u]=1; out.push(u);
+  }
+  const manga = out.filter(function(u){ return /\/uploads\/manga\//i.test(u); });
+  return manga.length ? manga : out;
+}
+
+// Registry browse loader
+async function loadThemesia(siteKey){
+  const site=THEMESIA_SITES[siteKey];
+  const html=await tmScrape(site.base+'/');
+  const list=tmParseList(html, site.base).slice(0,20);
+  if(!list.length) throw new Error('no series');
+  return list.map(function(s){
+    return { title:s.title, cover:(s.cover?tmImg(s.cover):''), label:site.label,
+      open:(function(slug,t){ return function(){ openThemesiaSeries(siteKey,slug,t); }; })(s.slug, s.title) };
+  });
+}
+
+function closeTmDetail(){ const ov=document.getElementById('tm-overlay'); if(ov) ov.style.display='none'; }
+function backToTmChapters(){ const c=S.tmCurrent; if(c) openThemesiaSeries(c.site,c.slug,c.title); else closeTmDetail(); }
+
+async function openThemesiaSeries(siteKey, slug, title){
+  const site=THEMESIA_SITES[siteKey];
+  const ov=document.getElementById('tm-overlay'), head=document.getElementById('tm-detail-head'), list=document.getElementById('tm-chapters');
+  if(!ov) return;
+  ov.style.display='block'; window.scrollTo(0,0);
+  head.innerHTML='<div style="font-family:Bebas Neue,sans-serif;font-size:24px">'+(title||slug)+'</div>';
+  list.innerHTML='<div class="loading"><div class="spinner"></div><span>Loading chapters...</span></div>';
+  try{
+    const html=await tmScrape(site.base+'/comics/'+slug+'/');
+    const d=tmParseDetails(html);
+    const chapters=tmParseChapters(html, site.base);
+    if(!chapters.length) throw new Error('no chapters found');
+    const cov = d.cover ? tmImg(d.cover) : '';
+    S.tmCurrent={ site:siteKey, slug:slug, title:title, chapters:chapters, cover:cov, type:(d.type||'Manhwa'), genres:(d.genres||[]) };
+    const first=chapters[chapters.length-1];
+    head.innerHTML=scanDetailHeader({
+      title:(title||slug), source:site.name, cover:cov,
+      genres:d.genres, desc:d.desc, type:d.type, status:d.status, rating:d.rating, year:d.year,
+      latest:chapters[0].num,
+      startOnclick:"openThemesiaChapter('"+siteKey+"','"+first.path+"','"+first.num+"','"+first.label.replace(/'/g,"\\'")+"')",
+      saveSource:siteKey, saveId:slug
+    });
+    list.innerHTML=chapters.map(function(c){
+      return scanChapterRow("openThemesiaChapter('"+siteKey+"','"+c.path+"','"+c.num+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, site.label, 'tm:'+siteKey+':'+slug+':'+c.num);
+    }).join('');
+  }catch(e){
+    list.innerHTML='<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
+  }
+}
+
+async function openThemesiaChapter(siteKey, path, num, label){
+  const site=THEMESIA_SITES[siteKey];
+  const head=document.getElementById('tm-detail-head'), list=document.getElementById('tm-chapters');
+  if(!list) return; window.scrollTo(0,0);
+  if(head) head.innerHTML='<div style="font-family:Bebas Neue,sans-serif;font-size:24px">'+(label||'Chapter')+'</div>' +
+    '<button onclick="backToTmChapters()" style="margin-top:10px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer">\u2190 Chapter list</button>';
+  list.innerHTML='<div class="loading"><div class="spinner"></div><span>Loading pages...</span></div>';
+  try{
+    const html=await tmScrape(site.base+'/'+path+'/');
+    const pages=tmParsePages(html);
+    if(!pages.length) throw new Error('no pages found');
+    var ch=(S.tmCurrent||{}).chapters||[];
+    var i=-1; for(var k=0;k<ch.length;k++){ if(ch[k].path===path){ i=k; break; } }
+    function call(idx){ if(idx<0||idx>=ch.length) return ''; var c=ch[idx]; return "openThemesiaChapter('"+siteKey+"','"+c.path+"','"+c.num+"','"+String(c.label).replace(/'/g,"\\'")+"')"; }
+    var prev=(i>=0)?call(i+1):''; var next=(i>0)?call(i-1):'';
+    list.innerHTML='<div style="max-width:800px;margin:0 auto">' +
+      pages.map(function(u){ return '<img src="'+tmImg(u)+'" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
+      scanReaderNav(prev, next, "backToTmChapters()") + '</div>';
+    var c=S.tmCurrent||{};
+    saveReadHistory({source:siteKey, id:(c.slug||''), title:(c.title||''), cover:(c.cover||''), chapterNum:num, chapterRef:path, pct:0});
+    markChRead('tm:'+siteKey+':'+(c.slug||'')+':'+num);
+    attachOverlayScroll(document.getElementById('tm-overlay'));
+  }catch(e){
+    list.innerHTML='<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
+      '<div style="margin-top:10px"><button onclick="backToTmChapters()" style="padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">\u2190 Back</button></div></div>';
+  }
+}
