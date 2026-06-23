@@ -287,6 +287,24 @@ async function loadBanner() {
     window.heroGo = function(i){ cur=i; show(i); resetTimer(); };
     function resetTimer(){ if(window._bt) clearInterval(window._bt); window._bt = setInterval(function(){ cur=(cur+1)%items.length; show(cur); }, 5000); }
     show(0); resetTimer();
+    // Swipe support (Crunchyroll-style)
+    var _sx = 0, _sy = 0, _swiping = false;
+    el.ontouchstart = function(e){ var t=e.touches[0]; _sx=t.clientX; _sy=t.clientY; _swiping=true; };
+    el.ontouchmove = function(e){
+      if(!_swiping) return;
+      var t=e.touches[0];
+      if(Math.abs(t.clientX-_sx) > Math.abs(t.clientY-_sy) && Math.abs(t.clientX-_sx) > 10) e.preventDefault();
+    };
+    el.ontouchend = function(e){
+      if(!_swiping) return; _swiping=false;
+      var dx = (e.changedTouches[0].clientX) - _sx;
+      var dy = (e.changedTouches[0].clientY) - _sy;
+      if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)){
+        if(dx < 0) cur = (cur+1)%items.length;        // swipe left -> next
+        else cur = (cur-1+items.length)%items.length; // swipe right -> prev
+        show(cur); resetTimer();
+      }
+    };
   } catch(e) {
     console.error('Hero error:', e.message);
     el.style.display = 'none';
