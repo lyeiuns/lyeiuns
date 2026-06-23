@@ -2638,6 +2638,34 @@ function asuraParseSeries(html){
   return chapters;
 }
 
+// ── Shared premium detail components (used by Asura + Weeb) ──────────────────
+function scanDetailHeader(o){
+  const cov = o.cover || '';
+  return '' +
+  '<div style="position:relative;margin:-20px -20px 0;height:230px;overflow:hidden">' +
+    (cov ? '<img src="'+cov+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(20px) brightness(0.45);transform:scale(1.15)">' : '') +
+    '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,8,6,0.25),rgba(10,8,6,0.97))"></div>' +
+  '</div>' +
+  '<div style="display:flex;gap:16px;margin-top:-130px;position:relative;padding:0 2px">' +
+    (cov ? '<img src="'+cov+'" alt="" style="width:120px;height:172px;object-fit:cover;border-radius:10px;flex-shrink:0;box-shadow:0 10px 30px rgba(0,0,0,0.6)" onerror="this.style.display=\'none\'">' : '') +
+    '<div style="flex:1;min-width:0;padding-top:74px">' +
+      '<div style="font-family:Bebas Neue,sans-serif;font-size:30px;letter-spacing:1px;line-height:1.02">'+o.title+'</div>' +
+      '<div style="color:var(--manga-red,#e63946);font-size:11px;font-weight:700;letter-spacing:1.5px;margin-top:5px">'+(o.source||'').toUpperCase()+'</div>' +
+    '</div>' +
+  '</div>' +
+  (o.genres && o.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">'+o.genres.map(function(g){return '<span style="font-size:11px;padding:4px 11px;background:var(--surface,#1a1410);border:1px solid var(--border,#2a2420);border-radius:14px;color:var(--muted,#bbb)">'+g+'</span>';}).join('')+'</div>' : '') +
+  (o.desc ? '<div style="font-size:13px;line-height:1.65;color:var(--muted,#b5b0aa);margin-top:14px">'+o.desc+'</div>' : '') +
+  (o.startOnclick ? '<button onclick="'+o.startOnclick+'" style="margin-top:18px;width:100%;padding:15px;background:var(--manga-red,#e63946);border:none;color:#fff;font-family:Bebas Neue,sans-serif;font-size:19px;letter-spacing:2px;border-radius:11px;cursor:pointer">\u25B6 START READING</button>' : '');
+}
+function scanChapterRow(onclick, label, source){
+  return '<div onclick="'+onclick+'" ' +
+    'onmouseover="this.style.background=\'#241c14\';this.style.borderColor=\'var(--manga-red,#e63946)\'" ' +
+    'onmouseout="this.style.background=\'var(--surface,#15110d)\';this.style.borderColor=\'var(--border,#221c17)\'" ' +
+    'style="padding:14px 16px;background:var(--surface,#15110d);border:1px solid var(--border,#221c17);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s,border-color .15s">' +
+    '<span style="font-weight:600;font-size:14px">'+label+'</span>' +
+    '<span style="color:var(--muted,#777);font-size:11px;letter-spacing:1px">'+source+' \u203A</span></div>';
+}
+
 // Parse cover, description, genres from an Asura series page.
 function asuraParseDetails(html){
   const cover = (html.match(/https:\/\/cdn\.asurascans\.com\/asura-images\/covers\/[^"'\s]+?\.webp/i) || [null])[0];
@@ -2668,21 +2696,17 @@ async function openAsuraSeries(slug, title){
     const chapters = asuraParseSeries(html);
     if(!chapters.length) throw new Error('no chapters found');
     S.asuraCurrent = { slug, title, chapters };
-    // Rich details header (cover + genres + description)
+    // Premium details header
     const d = asuraParseDetails(html);
-    head.innerHTML =
-      '<div style="display:flex;gap:14px;align-items:flex-start">' +
-        (d.cover ? '<img src="'+asuraImg(d.cover)+'" alt="" style="width:96px;height:136px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">' : '') +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px;line-height:1.1">'+(title||slug)+'</div>' +
-          '<div style="color:var(--muted,#888);font-size:11px;margin:4px 0 8px">Asura Scans</div>' +
-          (d.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px">'+d.genres.map(function(g){return '<span style="font-size:10px;padding:3px 8px;border:1px solid var(--border,#2a2420);border-radius:12px;color:var(--muted,#aaa)">'+g+'</span>';}).join('')+'</div>' : '') +
-        '</div>' +
-      '</div>' +
-      (d.desc ? '<div style="font-size:13px;line-height:1.5;color:var(--muted,#bbb);margin-top:12px">'+d.desc+'</div>' : '');
+    const firstNum = chapters[chapters.length-1];
+    head.innerHTML = scanDetailHeader({
+      title: (title||slug), source: 'Asura Scans',
+      cover: d.cover ? asuraImg(d.cover) : '',
+      genres: d.genres, desc: d.desc,
+      startOnclick: "openAsuraChapter('"+slug+"',"+firstNum+")"
+    });
     list.innerHTML = chapters.map(function(n){
-      return '<div onclick="openAsuraChapter(\''+slug+'\','+n+')" style="padding:12px 14px;border:1px solid var(--border,#2a2420);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
-        '<span>Chapter '+n+'</span><span style="color:var(--muted,#888);font-size:11px">ASURA</span></div>';
+      return scanChapterRow("openAsuraChapter('"+slug+"',"+n+")", 'Chapter '+n, 'ASURA');
     }).join('');
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
@@ -2884,22 +2908,17 @@ async function openWCSeries(id, title){
     const chapters = wcParseChapters(html);
     if(!chapters.length) throw new Error('no chapters found');
     S.wcCurrent = { id: id, title: title, chapters: chapters };
-    // Rich details header (cover + genres + description)
+    // Premium details header
     const d = wcParseDetails(both[1] || '');
     const cov = wcImg(wcCover(id));
-    head.innerHTML =
-      '<div style="display:flex;gap:14px;align-items:flex-start">' +
-        '<img src="'+cov+'" alt="" style="width:96px;height:136px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-family:Bebas Neue,sans-serif;font-size:24px;letter-spacing:1px;line-height:1.1">'+(title||'')+'</div>' +
-          '<div style="color:var(--muted,#888);font-size:11px;margin:4px 0 8px">Weeb Central</div>' +
-          (d.genres.length ? '<div style="display:flex;flex-wrap:wrap;gap:5px">'+d.genres.map(function(g){return '<span style="font-size:10px;padding:3px 8px;border:1px solid var(--border,#2a2420);border-radius:12px;color:var(--muted,#aaa)">'+g+'</span>';}).join('')+'</div>' : '') +
-        '</div>' +
-      '</div>' +
-      (d.desc ? '<div style="font-size:13px;line-height:1.5;color:var(--muted,#bbb);margin-top:12px">'+d.desc+'</div>' : '');
+    const firstChap = chapters[chapters.length-1];
+    head.innerHTML = scanDetailHeader({
+      title: (title||''), source: 'Weeb Central',
+      cover: cov, genres: d.genres, desc: d.desc,
+      startOnclick: "openWCChapter('"+firstChap.id+"','"+firstChap.label.replace(/'/g,"\\'")+"')"
+    });
     list.innerHTML = chapters.map(function(c){
-      return '<div onclick="openWCChapter(\''+c.id+'\',\''+c.label.replace(/'/g,"\\'")+'\')" style="padding:12px 14px;border:1px solid var(--border,#2a2420);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center">' +
-        '<span>'+c.label+'</span><span style="color:var(--muted,#888);font-size:11px">WEEB</span></div>';
+      return scanChapterRow("openWCChapter('"+c.id+"','"+c.label.replace(/'/g,"\\'")+"')", c.label, 'WEEB');
     }).join('');
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load chapters</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span></div>';
