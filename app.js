@@ -3667,7 +3667,7 @@ function showScanChrome(prevStr, nextStr){
   hideScanCtrl(); // start hidden; double-tap reveals
 }
 function hideScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display='none'; }
-function toggleScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display = (c.style.display==='flex') ? 'none' : 'flex'; }
+function toggleScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display = (c.style.display==='block') ? 'none' : 'block'; }
 function hideScanChrome(){
   ['scan-progress','scan-pct','scan-ctrl'].forEach(function(id){ const e=document.getElementById(id); if(e) e.style.display='none'; });
 }
@@ -3675,6 +3675,13 @@ function closeScanReader(){
   hideScanChrome();
   ['asura-overlay','wc-overlay','tm-overlay'].forEach(function(id){ const e=document.getElementById(id); if(e) e.style.display='none'; });
   showPage('home');
+}
+function backScanReader(){
+  hideScanCtrl();
+  const vis=function(id){ const e=document.getElementById(id); return e && e.style.display==='block'; };
+  if(vis('asura-overlay') && typeof backToAsuraChapters==='function') backToAsuraChapters();
+  else if(vis('wc-overlay') && typeof backToWCChapters==='function') backToWCChapters();
+  else if(vis('tm-overlay') && typeof backToTmChapters==='function') backToTmChapters();
 }
 function updateScanProgress(pct){
   const p=document.getElementById('scan-progress'), pc=document.getElementById('scan-pct');
