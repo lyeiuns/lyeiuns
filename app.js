@@ -3559,3 +3559,77 @@ async function openThemesiaChapter(siteKey, path, num, label){
       '<div style="margin-top:10px"><button onclick="backToTmChapters()" style="padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">\u2190 Back</button></div></div>';
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  LIBRARY UPDATES — "which saved titles have a new chapter I haven't read?"
+//  On-demand check; scrapes each saved title's series page (all sources),
+//  compares latest chapter against read-tracking. No search walls involved.
+// ═══════════════════════════════════════════════════════════════════════════
+async function getLatestUnread(m){
+  try {
+    if(m._scan && m.source==='asura'){
+      const html = await asuraScrape(ASURA + '/comics/' + m.id);
+      const chs = asuraParseSeries(html);
+      if(!chs.length) return null;
+      const num = chs[0];
+      if(isChRead('asura:'+m.id+':'+num)) return null;
+      return { label:'Chapter '+num, open:"openAsuraSeries('"+m.id+"',"+JSON.stringify(m.title)+")" };
+    }
+    if(m._scan && m.source==='weeb'){
+      const html = await wcScrape(WC + '/series/' + m.id + '/full-chapter-list');
+      const chs = wcParseChapters(html);
+      if(!chs.length) return null;
+      const c = chs[0];
+      if(isChRead('weeb:'+c.id)) return null;
+      return { label:c.label, open:"openWCSeries('"+m.id+"',"+JSON.stringify(m.title)+")" };
+    }
+    if(m._scan && THEMESIA_SITES[m.source]){
+      const site = THEMESIA_SITES[m.source];
+      const html = await tmScrape(site.base + '/comics/' + m.id + '/');
+      const chs = tmParseChapters(html, site.base);
+      if(!chs.length) return null;
+      const c = chs[0];
+      if(isChRead('tm:'+m.source+':'+m.id+':'+c.num)) return null;
+      return { label:c.label, open:"openThemesiaSeries('"+m.source+"','"+m.id+"',"+JSON.stringify(m.title)+")" };
+    }
+    // MangaDex
+    const res = await fetch(API + '/manga/' + m.id + '/feed?translatedLanguage[]=en&order[chapter]=desc&limit=1&includeExternalUrl=0');
+    const data = await res.json();
+    const ch = (data.data||[])[0];
+    if(!ch) return null;
+    if(isChRead(ch.id)) return null;
+    const cn = ch.attributes && ch.attributes.chapter;
+    return { label:'Chapter '+(cn||'?'), open:"openDetail('"+m.id+"')" };
+  } catch(e){ return null; }
+}
+
+async function checkLibraryUpdates(){
+  const btn = document.getElementById('lib-updates-btn');
+  const box = document.getElementById('lib-updates-box');
+  if(!box) return;
+  if(!S.library || !S.library.length){ box.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Save some titles first, then check for updates.</div>'; return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Checking…'; }
+  box.innerHTML = '<div class="loading"><div class="spinner"></div><span>Checking '+S.library.length+' titles…</span></div>';
+  try {
+    const results = await Promise.all(S.library.map(function(m){
+      return getLatestUnread(m).then(function(r){ return r ? { m:m, r:r } : null; });
+    }));
+    const updated = results.filter(Boolean);
+    if(!updated.length){
+      box.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px 0">\u2713 You\u2019re all caught up — no new chapters.</div>';
+    } else {
+      box.innerHTML = '<div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:1px;margin:6px 0 10px;color:var(--manga-red,#e63946)">\uD83D\uDD14 '+updated.length+' NEW CHAPTER'+(updated.length>1?'S':'')+'</div>' +
+        updated.map(function(u){
+          var badge = u.m._scan ? (u.m.source==='asura'?'ASURA':u.m.source==='weeb'?'WEEB':(THEMESIA_SITES[u.m.source]?THEMESIA_SITES[u.m.source].label:u.m.source.toUpperCase())) : 'MANGADEX';
+          return '<div onclick="'+u.r.open.replace(/"/g,'&quot;')+'" style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface);border:1px solid var(--manga-red,#e63946);border-radius:10px;margin-bottom:8px;cursor:pointer">' +
+            (u.m.cover?'<img src="'+u.m.cover+'" style="width:42px;height:58px;object-fit:cover;border-radius:5px;flex-shrink:0" onerror="this.style.opacity=0.3">':'') +
+            '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+u.m.title+'</div>' +
+            '<div style="font-size:11px;color:var(--manga-red,#e63946);margin-top:3px">New: '+u.r.label+' \u00B7 '+badge+'</div></div>' +
+            '<div style="color:var(--manga-red,#e63946);font-size:18px">\u203A</div></div>';
+        }).join('');
+    }
+  } catch(e){
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px">Couldn\u0027t check updates: '+e.message+'</div>';
+  }
+  if(btn){ btn.disabled = false; btn.textContent = '\uD83D\uDD14 Check for New Chapters'; }
+}
