@@ -2894,7 +2894,7 @@ function scanReaderNav(prevOnclick, nextOnclick, listOnclick){
         ? 'background:'+(on?'var(--manga-red,#e63946)':'#17120e')+';border:none;color:'+(on?'#fff':'#555')+';'
         : 'background:'+(on?'var(--surface,#1a1410)':'#17120e')+';border:1px solid var(--border,#2a2420);color:'+(on?'#fff':'#555')+';')+'">'+label+'</button>';
   }
-  return '<div style="display:flex;gap:8px;max-width:800px;margin:0 auto;padding:20px 0 32px">' +
+  return '<div style="display:flex;gap:8px;max-width:800px;margin:0 auto;padding:20px 16px 32px">' +
     btn(prevOnclick,'\u2190 Prev',false) +
     btn(listOnclick,'List',false) +
     btn(nextOnclick,'Next \u2192',true) +
@@ -3016,7 +3016,7 @@ async function openAsuraChapter(slug, num){
     var _ai = _ach.indexOf(num);
     var _aPrev = (_ai>=0 && _ai+1<_ach.length) ? "openAsuraChapter('"+slug+"',"+_ach[_ai+1]+")" : '';
     var _aNext = (_ai>0) ? "openAsuraChapter('"+slug+"',"+_ach[_ai-1]+")" : '';
-    list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
+    list.innerHTML = '<div style="margin:0 -20px">' +
       pages.map(function(u){ return '<img src="' + asuraImg(u) + '" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
       scanReaderNav(_aPrev, _aNext, "backToAsuraChapters()") + '</div>';
     var _ac = S.asuraCurrent || {};
@@ -3247,7 +3247,7 @@ async function openWCChapter(chapId, label){
     function _wCall(idx){ if(idx<0||idx>=_wch.length) return ''; var c=_wch[idx]; return "openWCChapter('"+c.id+"','"+String(c.label).replace(/'/g,"\\'")+"')"; }
     var _wPrev = (_wi>=0) ? _wCall(_wi+1) : '';
     var _wNext = (_wi>0) ? _wCall(_wi-1) : '';
-    list.innerHTML = '<div style="max-width:800px;margin:0 auto">' +
+    list.innerHTML = '<div style="margin:0 -20px">' +
       pages.map(function(u){ return '<img src="'+wcImg(u)+'" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
       scanReaderNav(_wPrev, _wNext, "backToWCChapters()") + '</div>';
     var _wc = S.wcCurrent || {};
@@ -3560,7 +3560,7 @@ async function openThemesiaChapter(siteKey, path, num, label){
     var i=-1; for(var k=0;k<ch.length;k++){ if(ch[k].path===path){ i=k; break; } }
     function call(idx){ if(idx<0||idx>=ch.length) return ''; var c=ch[idx]; return "openThemesiaChapter('"+siteKey+"','"+c.path+"','"+c.num+"','"+String(c.label).replace(/'/g,"\\'")+"')"; }
     var prev=(i>=0)?call(i+1):''; var next=(i>0)?call(i-1):'';
-    list.innerHTML='<div style="max-width:800px;margin:0 auto">' +
+    list.innerHTML='<div style="margin:0 -20px">' +
       pages.map(function(u){ return '<img src="'+tmImg(u)+'" alt="" loading="lazy" style="width:100%;display:block">'; }).join('') +
       scanReaderNav(prev, next, "backToTmChapters()") + '</div>';
     var c=S.tmCurrent||{};
