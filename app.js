@@ -3689,14 +3689,18 @@ function updateScanProgress(pct){
   if(pc && pc.style.display!=='none'){ pc.textContent=Math.round(pct)+'%'; }
 }
 // Double-tap detection on a reader overlay → toggle control bar
+// Attaches exactly once per overlay (guard prevents stacked listeners).
 function attachScanDoubleTap(el){
-  if(!el) return;
-  var last=0;
+  if(!el || el._dtAttached) return;
+  el._dtAttached = true;
+  var last=0, lx=0, ly=0;
   el.addEventListener('touchend', function(e){
-    if(e.target.closest('button') || e.target.closest('#scan-ctrl')) return;
-    var now=Date.now();
-    if(now-last < 300){ toggleScanCtrl(); last=0; } else { last=now; }
-  });
+    if(e.target.closest('#scan-ctrl')) return;
+    var t=(e.changedTouches && e.changedTouches[0]) || {};
+    var x=t.clientX||0, y=t.clientY||0, now=Date.now();
+    if(now-last < 350 && Math.abs(x-lx)<32 && Math.abs(y-ly)<32){ toggleScanCtrl(); last=0; }
+    else { last=now; lx=x; ly=y; }
+  }, {passive:true});
   // desktop fallback
-  el.ondblclick=function(e){ if(!e.target.closest('button')) toggleScanCtrl(); };
+  el.ondblclick=function(e){ if(!e.target.closest('#scan-ctrl')) toggleScanCtrl(); };
 }
