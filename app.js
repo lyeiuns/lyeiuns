@@ -374,7 +374,7 @@ function attachOverlayScroll(el){
   if(!el) return;
   el.onscroll = function(){
     const max = el.scrollHeight - el.clientHeight;
-    if(max > 0) updateReadPct((el.scrollTop / max) * 100);
+    if(max > 0){ const pct=(el.scrollTop / max) * 100; updateReadPct(pct); updateScanProgress(pct); }
   };
 }
 function _restoreScroll(getEl, pct){
@@ -2969,7 +2969,7 @@ async function openAsuraSeries(slug, title){
   }
 }
 
-function closeAsuraDetail(){
+function closeAsuraDetail(){ hideScanChrome();
   const ov = document.getElementById('asura-overlay');
   if(ov) ov.style.display = 'none';
 }
@@ -3023,6 +3023,8 @@ async function openAsuraChapter(slug, num){
     saveReadHistory({source:'asura', id:slug, title:(_ac.title||slug), cover:(_ac.cover||''), chapterNum:num, chapterRef:num, pct:0});
     markChRead('asura:'+slug+':'+num);
     attachOverlayScroll(document.getElementById('asura-overlay'));
+    attachScanDoubleTap(document.getElementById('asura-overlay'));
+    showScanChrome(_aPrev, _aNext);
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
       '<div style="margin-top:10px"><button onclick="backToAsuraChapters()" style="padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">\u2190 Back</button></div></div>';
@@ -3048,7 +3050,7 @@ function asuraParsePages(html){
   return out;
 }
 
-function backToAsuraChapters(){
+function backToAsuraChapters(){ hideScanChrome();
   const c = S.asuraCurrent;
   if(c){ openAsuraSeries(c.slug, c.title); }
   else { closeAsuraDetail(); }
@@ -3203,12 +3205,12 @@ async function openWCSeries(id, title){
   }
 }
 
-function closeWCDetail(){
+function closeWCDetail(){ hideScanChrome();
   const ov = document.getElementById('wc-overlay');
   if(ov) ov.style.display = 'none';
 }
 
-function backToWCChapters(){
+function backToWCChapters(){ hideScanChrome();
   const c = S.wcCurrent;
   if(c){ openWCSeries(c.id, c.title); }
   else { closeWCDetail(); }
@@ -3254,6 +3256,8 @@ async function openWCChapter(chapId, label){
     saveReadHistory({source:'weeb', id:(_wc.id||''), title:(_wc.title||''), cover:(_wc.cover||''), chapterNum:label, chapterRef:chapId, pct:0});
     markChRead('weeb:'+chapId);
     attachOverlayScroll(document.getElementById('wc-overlay'));
+    attachScanDoubleTap(document.getElementById('wc-overlay'));
+    showScanChrome(_wPrev, _wNext);
   } catch(e){
     list.innerHTML = '<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
       '<div style="margin-top:10px"><button onclick="backToWCChapters()" style="padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">← Back</button></div></div>';
@@ -3512,8 +3516,8 @@ async function loadThemesia(siteKey){
   });
 }
 
-function closeTmDetail(){ const ov=document.getElementById('tm-overlay'); if(ov) ov.style.display='none'; }
-function backToTmChapters(){ const c=S.tmCurrent; if(c) openThemesiaSeries(c.site,c.slug,c.title); else closeTmDetail(); }
+function closeTmDetail(){ hideScanChrome(); const ov=document.getElementById('tm-overlay'); if(ov) ov.style.display='none'; }
+function backToTmChapters(){ hideScanChrome(); const c=S.tmCurrent; if(c) openThemesiaSeries(c.site,c.slug,c.title); else closeTmDetail(); }
 
 async function openThemesiaSeries(siteKey, slug, title){
   const site=THEMESIA_SITES[siteKey];
@@ -3567,6 +3571,8 @@ async function openThemesiaChapter(siteKey, path, num, label){
     saveReadHistory({source:siteKey, id:(c.slug||''), title:(c.title||''), cover:(c.cover||''), chapterNum:num, chapterRef:path, pct:0});
     markChRead('tm:'+siteKey+':'+(c.slug||'')+':'+num);
     attachOverlayScroll(document.getElementById('tm-overlay'));
+    attachScanDoubleTap(document.getElementById('tm-overlay'));
+    showScanChrome(prev, next);
   }catch(e){
     list.innerHTML='<div class="empty"><p>Couldn\u0027t load pages</p><span style="font-size:11px;opacity:0.5">'+e.message+'</span>' +
       '<div style="margin-top:10px"><button onclick="backToTmChapters()" style="padding:6px 16px;background:var(--manga-red,#e63946);border:none;color:#fff;border-radius:6px;cursor:pointer">\u2190 Back</button></div></div>';
@@ -3645,4 +3651,45 @@ async function checkLibraryUpdates(){
     box.innerHTML = '<div style="color:var(--muted);font-size:12px">Couldn\u0027t check updates: '+e.message+'</div>';
   }
   if(btn){ btn.disabled = false; btn.textContent = '\uD83D\uDD14 Check for New Chapters'; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SCAN READER CHROME — progress bar/%, double-tap Home/Prev/Next control bar
+//  Shared across Asura, Weeb, Violet, Thunder readers.
+// ═══════════════════════════════════════════════════════════════════════════
+function showScanChrome(prevStr, nextStr){
+  const p=document.getElementById('scan-progress'), pc=document.getElementById('scan-pct');
+  if(p){ p.style.display='block'; p.style.width='0%'; }
+  if(pc){ pc.style.display='block'; pc.textContent='0%'; }
+  const pb=document.getElementById('scan-ctrl-prev'), nb=document.getElementById('scan-ctrl-next');
+  if(pb){ if(prevStr){ pb.style.opacity='1'; pb.onclick=function(){ hideScanCtrl(); eval(prevStr); }; } else { pb.style.opacity='0.4'; pb.onclick=null; } }
+  if(nb){ if(nextStr){ nb.style.opacity='1'; nb.onclick=function(){ hideScanCtrl(); eval(nextStr); }; } else { nb.style.opacity='0.4'; nb.onclick=null; } }
+  hideScanCtrl(); // start hidden; double-tap reveals
+}
+function hideScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display='none'; }
+function toggleScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display = (c.style.display==='flex') ? 'none' : 'flex'; }
+function hideScanChrome(){
+  ['scan-progress','scan-pct','scan-ctrl'].forEach(function(id){ const e=document.getElementById(id); if(e) e.style.display='none'; });
+}
+function closeScanReader(){
+  hideScanChrome();
+  ['asura-overlay','wc-overlay','tm-overlay'].forEach(function(id){ const e=document.getElementById(id); if(e) e.style.display='none'; });
+  showPage('home');
+}
+function updateScanProgress(pct){
+  const p=document.getElementById('scan-progress'), pc=document.getElementById('scan-pct');
+  if(p && p.style.display!=='none'){ p.style.width=pct+'%'; }
+  if(pc && pc.style.display!=='none'){ pc.textContent=Math.round(pct)+'%'; }
+}
+// Double-tap detection on a reader overlay → toggle control bar
+function attachScanDoubleTap(el){
+  if(!el) return;
+  var last=0;
+  el.addEventListener('touchend', function(e){
+    if(e.target.closest('button') || e.target.closest('#scan-ctrl')) return;
+    var now=Date.now();
+    if(now-last < 300){ toggleScanCtrl(); last=0; } else { last=now; }
+  });
+  // desktop fallback
+  el.ondblclick=function(e){ if(!e.target.closest('button')) toggleScanCtrl(); };
 }
