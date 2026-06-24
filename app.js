@@ -3472,19 +3472,32 @@ function tmParseDetails(html){
   return { cover:cover, desc:desc, genres:genres.slice(0,8), type:type, status:status, year:year, rating:rating };
 }
 
-// Extract page images (ts_reader embeds them under /wp-content/uploads/manga/)
+// Extract page images from the theme's ts_reader script (definitive page list,
+// works for any Themesia site regardless of CDN/path).
 function tmParsePages(html){
   const out=[], seen={};
-  const re=/https?:(?:\\?\/){2}[^"'\s\\]+?\/wp-content\/uploads\/[^"'\s\\]+?\.(?:jpg|jpeg|png|webp)/gi;
+  function collect(block){
+    const ire=/https?:[^"'\s,\]]+?\.(?:jpg|jpeg|png|webp)/gi;
+    let m;
+    while((m=ire.exec(block))){
+      let u=m[0].replace(/\\\//g,'/').replace(/\\/g,'');
+      if(seen[u]) continue;
+      if(/\/(themes|plugins|avatar|icons?|logo|banner|reactions?|cropped|wp-content\/uploads\/\d{4}\/)/i.test(u)) continue;
+      seen[u]=1; out.push(u);
+    }
+  }
+  // Primary: the "images":[...] array inside ts_reader.run({...})
+  const arr = html.match(/"images"\s*:\s*\[([\s\S]*?)\]/);
+  if(arr){ collect(arr[1]); if(out.length) return out; }
+  // Fallback: chapter pages under /uploads/manga/
+  const re=/https?:(?:\\?\/){2}[^"'\s\\]+?\/wp-content\/uploads\/manga\/[^"'\s\\]+?\.(?:jpg|jpeg|png|webp)/gi;
   let m;
   while((m=re.exec(html))){
     let u=m[0].replace(/\\\//g,'/');
     if(seen[u]) continue;
-    if(/\/(themes|plugins|avatar|icons?|logo|banner|reactions?|cropped)\b/i.test(u)) continue;
     seen[u]=1; out.push(u);
   }
-  const manga = out.filter(function(u){ return /\/uploads\/manga\//i.test(u); });
-  return manga.length ? manga : out;
+  return out;
 }
 
 // Registry browse loader
