@@ -3457,7 +3457,7 @@ function tmTitleFromSlug(slug){ try{slug=decodeURIComponent(slug);}catch(e){} re
 // Parse series cards from a homepage / comics listing
 function tmParseList(html, base){
   const out=[], seen={};
-  const re = new RegExp('<a[^>]+href="'+tmEsc(base)+'/comics/([^"/]+)/"[^>]*>([\\s\\S]{0,600}?)</a>','gi');
+  const re = new RegExp('<a[^>]+href="'+tmEsc(base)+'/comics/([^"/]+)/"[^>]*>([\\s\\S]{0,1600}?)</a>','gi');
   let m;
   while((m = re.exec(html))){
     const slug = m[1];
@@ -3465,17 +3465,15 @@ function tmParseList(html, base){
     const whole = m[0], block = m[2];
     const titleM = whole.match(/title="([^"]*)"/i);
     let cover='';
-    // Prefer the actual cover <img> (it carries a post-image class on these themes)
-    const postImg = block.match(/<img[^>]*post-image[^>]*>/i) || block.match(/<img[^>]*>/i);
-    if(postImg){
-      const u = postImg[0].match(/(?:data-src|data-lazy-src|data-cfsrc|src)="([^"]*\/wp-content\/uploads\/[^"]+?\.(?:jpg|jpeg|png|webp))"/i)
-             || postImg[0].match(/https?:\/\/[^"'\s]+?\/wp-content\/uploads\/[^"'\s]+?\.(?:jpg|jpeg|png|webp)/i);
-      if(u) cover = u[1] || u[0];
-    }
+    // Covers are dated uploads (e.g. /uploads/2025/01/...). Prefer those — this
+    // skips NEW/HOT badge icons and theme assets that aren't dated uploads.
+    const dated = block.match(/https?:\/\/[^"'\s\\]+?\/wp-content\/uploads\/\d{4}\/[^"'\s\\]+?\.(?:jpg|jpeg|png|webp)/i);
+    if(dated) cover = dated[0];
     if(!cover){
-      const covM = block.match(/https?:\/\/[^"'\s]+?\/wp-content\/uploads\/[^"'\s]+?\.(?:jpg|jpeg|png|webp)/i);
-      if(covM) cover = covM[0];
+      const any = block.match(/https?:\/\/[^"'\s\\]+?\/wp-content\/uploads\/[^"'\s\\]+?\.(?:jpg|jpeg|png|webp)/i);
+      if(any) cover = any[0];
     }
+    cover = cover.replace(/\\\//g,'/');
     out.push({ slug:slug, title:(titleM?tmDecode(titleM[1]):tmTitleFromSlug(slug)), cover:cover });
   }
   return out;
