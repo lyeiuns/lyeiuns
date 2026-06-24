@@ -321,6 +321,17 @@ function goBanner(i) {
 // ═══════════════════════════════════════════
 // CONTINUE READING
 // ═══════════════════════════════════════════
+function cleanLabel(s){
+  return String(s==null?'':s)
+    .replace(/<[^>]+>/g,' ')
+    .replace(/\.st\d+\s*\{[^}]*\}/gi,' ')
+    .replace(/\{[^}]*\}/g,' ')
+    .replace(/Last\s*Read/gi,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function srcBadge(src){
+  return src==='asura'?'ASURA':src==='weeb'?'WEEB':(THEMESIA_SITES[src]?THEMESIA_SITES[src].label:'MANGADEX');
+}
 function renderContinue() {
   const sec=document.getElementById('continue-section');
   const grid=document.getElementById('continue-grid');
@@ -329,13 +340,13 @@ function renderContinue() {
   sec.style.display='block';
   grid.innerHTML=S.history_items.slice(0,6).map(function(h,i){
     const src=(h.source||'mangadex');
-    const badge = src==='asura'?'ASURA':(src==='weeb'?'WEEB':'MANGADEX');
+    const badge = srcBadge(src);
     const pct = Math.max(0,Math.min(100, h.pct||0));
     return '<div class="continue-card" onclick="resumeRead('+i+')">' +
       '<img class="continue-cover" src="'+(h.cover||'')+'" alt="" onerror="this.style.display=\'none\'">' +
       '<div class="continue-info" style="flex:1;min-width:0">' +
-        '<div class="continue-title">'+(h.title||'')+'</div>' +
-        '<div class="continue-ch">Chapter '+(h.chapterNum)+' \u00B7 '+badge+'</div>' +
+        '<div class="continue-title">'+cleanLabel(h.title)+'</div>' +
+        '<div class="continue-ch">Chapter '+cleanLabel(h.chapterNum)+' \u00B7 '+badge+'</div>' +
         '<div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:7px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--manga-red,#e63946);border-radius:2px"></div></div>' +
       '</div>' +
       '<div style="color:var(--accent2);font-size:20px;flex-shrink:0">\u203A</div>' +
@@ -1703,7 +1714,7 @@ function renderProfile() {
   if(re2) {
     if(recent.length) {
       re2.innerHTML = recent.map(function(h, idx) {
-        var badge = (h.source==='asura')?'ASURA':(h.source==='weeb')?'WEEB':'MANGADEX';
+        var badge = srcBadge(h.source||'mangadex');
         var when = h.ts ? timeAgo(new Date(h.ts).toISOString()) : '';
         return '<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;cursor:pointer" onclick="resumeRead('+idx+')">' +
           (h.cover ? '<img src="'+h.cover+'" style="width:44px;height:60px;object-fit:cover;flex-shrink:0" onerror="this.style.opacity=0.3">' : '<div style="width:44px;height:60px;background:var(--surface2);flex-shrink:0"></div>') +
@@ -3133,7 +3144,15 @@ function wcParseChapters(html){
     var inner = m[2];
     var dm = inner.match(/datetime="([^"]+)"/i);
     var date = dm ? dm[1] : '';
-    var label = inner.replace(/<time[\s\S]*?<\/time>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    var label = inner
+      .replace(/<style[\s\S]*?<\/style>/gi,' ')
+      .replace(/<svg[\s\S]*?<\/svg>/gi,' ')
+      .replace(/<script[\s\S]*?<\/script>/gi,' ')
+      .replace(/<time[\s\S]*?<\/time>/gi,' ')
+      .replace(/<[^>]+>/g,' ')
+      .replace(/\.st\d+\s*\{[^}]*\}/gi,' ')
+      .replace(/Last\s*Read/gi,' ')
+      .replace(/\s+/g,' ').trim();
     if(!label) label = 'Chapter';
     out.push({ id: id, label: label, date: date });
   }
@@ -3437,9 +3456,17 @@ function tmParseList(html, base){
     const whole = m[0], block = m[2];
     const titleM = whole.match(/title="([^"]*)"/i);
     let cover='';
-    // Grab the first real uploads image in the card, regardless of lazy-load attribute
-    const covM = block.match(/https?:\/\/[^"'\s]+?\/wp-content\/uploads\/[^"'\s]+?\.(?:jpg|jpeg|png|webp)/i);
-    if(covM) cover = covM[0];
+    // Prefer the actual cover <img> (it carries a post-image class on these themes)
+    const postImg = block.match(/<img[^>]*post-image[^>]*>/i) || block.match(/<img[^>]*>/i);
+    if(postImg){
+      const u = postImg[0].match(/(?:data-src|data-lazy-src|data-cfsrc|src)="([^"]*\/wp-content\/uploads\/[^"]+?\.(?:jpg|jpeg|png|webp))"/i)
+             || postImg[0].match(/https?:\/\/[^"'\s]+?\/wp-content\/uploads\/[^"'\s]+?\.(?:jpg|jpeg|png|webp)/i);
+      if(u) cover = u[1] || u[0];
+    }
+    if(!cover){
+      const covM = block.match(/https?:\/\/[^"'\s]+?\/wp-content\/uploads\/[^"'\s]+?\.(?:jpg|jpeg|png|webp)/i);
+      if(covM) cover = covM[0];
+    }
     out.push({ slug:slug, title:(titleM?tmDecode(titleM[1]):tmTitleFromSlug(slug)), cover:cover });
   }
   return out;
@@ -3658,6 +3685,7 @@ async function checkLibraryUpdates(){
 //  Shared across Asura, Weeb, Violet, Thunder readers.
 // ═══════════════════════════════════════════════════════════════════════════
 function showScanChrome(prevStr, nextStr){
+  S.inScanReader = true;
   const p=document.getElementById('scan-progress'), pc=document.getElementById('scan-pct');
   if(p){ p.style.display='block'; p.style.width='0%'; }
   if(pc){ pc.style.display='block'; pc.textContent='0%'; }
@@ -3669,6 +3697,7 @@ function showScanChrome(prevStr, nextStr){
 function hideScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display='none'; }
 function toggleScanCtrl(){ const c=document.getElementById('scan-ctrl'); if(c) c.style.display = (c.style.display==='block') ? 'none' : 'block'; }
 function hideScanChrome(){
+  S.inScanReader = false;
   ['scan-progress','scan-pct','scan-ctrl'].forEach(function(id){ const e=document.getElementById(id); if(e) e.style.display='none'; });
 }
 function closeScanReader(){
@@ -3702,6 +3731,7 @@ function attachScanDoubleTap(el){
     if(Math.abs(t.clientX-sx)>12 || Math.abs(t.clientY-sy)>12) moved=true;
   }, {passive:true});
   el.addEventListener('touchend', function(e){
+    if(!S.inScanReader) return;                   // only while reading a chapter
     if(e.target.closest('#scan-ctrl')) return;   // tapped a control button
     if(moved || Date.now()-st > 450) return;      // was a scroll or long-press
     toggleScanCtrl();
@@ -3709,6 +3739,7 @@ function attachScanDoubleTap(el){
   }, {passive:true});
   // Desktop click (guard against the synthesized click after a touch)
   el.onclick = function(e){
+    if(!S.inScanReader) return;
     if(Date.now() - (el._lastTouch||0) < 600) return;
     if(!e.target.closest('#scan-ctrl')) toggleScanCtrl();
   };
