@@ -330,9 +330,17 @@ function cleanLabel(s){
     .replace(/\s+/g,' ').trim();
 }
 function srcBadge(src){
-  return src==='asura'?'ASURA':src==='weeb'?'WEEB':(THEMESIA_SITES[src]?THEMESIA_SITES[src].label:'MANGADEX');
+  switch(src){
+    case 'asura': return 'ASURA';
+    case 'weeb': return 'WEEB';
+    case 'violet': return 'VIOLET';
+    case 'thunder': return 'THUNDER';
+    case 'lua': return 'LUA';
+    default: return 'MANGADEX';
+  }
 }
 function renderContinue() {
+ try {
   const sec=document.getElementById('continue-section');
   const grid=document.getElementById('continue-grid');
   if(!sec||!grid) return;
@@ -352,6 +360,7 @@ function renderContinue() {
       '<div style="color:var(--accent2);font-size:20px;flex-shrink:0">\u203A</div>' +
     '</div>';
   }).join('');
+ } catch(err){ console.error('renderContinue:', err); }
 }
 
 // ── Unified reading history + resume (all sources, with scroll %) ────────────
