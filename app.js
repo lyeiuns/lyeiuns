@@ -3688,19 +3688,28 @@ function updateScanProgress(pct){
   if(p && p.style.display!=='none'){ p.style.width=pct+'%'; }
   if(pc && pc.style.display!=='none'){ pc.textContent=Math.round(pct)+'%'; }
 }
-// Double-tap detection on a reader overlay → toggle control bar
-// Attaches exactly once per overlay (guard prevents stacked listeners).
+// Single-tap on a reader overlay toggles the control bar (reliable on iOS).
+// A "tap" = touch down+up in roughly the same spot with no scroll.
 function attachScanDoubleTap(el){
   if(!el || el._dtAttached) return;
   el._dtAttached = true;
-  var last=0, lx=0, ly=0;
-  el.addEventListener('touchend', function(e){
-    if(e.target.closest('#scan-ctrl')) return;
-    var t=(e.changedTouches && e.changedTouches[0]) || {};
-    var x=t.clientX||0, y=t.clientY||0, now=Date.now();
-    if(now-last < 350 && Math.abs(x-lx)<32 && Math.abs(y-ly)<32){ toggleScanCtrl(); last=0; }
-    else { last=now; lx=x; ly=y; }
+  var sx=0, sy=0, st=0, moved=false;
+  el.addEventListener('touchstart', function(e){
+    var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now(); moved=false;
   }, {passive:true});
-  // desktop fallback
-  el.ondblclick=function(e){ if(!e.target.closest('#scan-ctrl')) toggleScanCtrl(); };
+  el.addEventListener('touchmove', function(e){
+    var t=e.touches[0];
+    if(Math.abs(t.clientX-sx)>12 || Math.abs(t.clientY-sy)>12) moved=true;
+  }, {passive:true});
+  el.addEventListener('touchend', function(e){
+    if(e.target.closest('#scan-ctrl')) return;   // tapped a control button
+    if(moved || Date.now()-st > 450) return;      // was a scroll or long-press
+    toggleScanCtrl();
+    el._lastTouch = Date.now();
+  }, {passive:true});
+  // Desktop click (guard against the synthesized click after a touch)
+  el.onclick = function(e){
+    if(Date.now() - (el._lastTouch||0) < 600) return;
+    if(!e.target.closest('#scan-ctrl')) toggleScanCtrl();
+  };
 }
