@@ -3297,8 +3297,7 @@ const SCAN_SOURCES = [
     }
   },
   { id:'violet',  label:'VIOLET',  load: function(){ return loadThemesia('violet'); } },
-  { id:'thunder', label:'THUNDER', load: function(){ return loadThemesia('thunder'); } },
-  { id:'lua',     label:'LUA',     load: function(){ return loadThemesia('lua'); } }
+  { id:'thunder', label:'THUNDER', load: function(){ return loadThemesia('thunder'); } }
   // ── To add a source later, add { id, label, load } here. ──
 ];
 
@@ -3434,9 +3433,9 @@ function tmParseList(html, base){
     const whole = m[0], block = m[2];
     const titleM = whole.match(/title="([^"]*)"/i);
     let cover='';
-    const imgM = block.match(/<img[^>]+(?:data-src|data-lazy-src|src)="([^"]+)"/i);
-    if(imgM) cover = imgM[1];
-    if(/data:image|placeholder/i.test(cover)){ const d=block.match(/data-(?:src|lazy-src)="([^"]+)"/i); if(d)cover=d[1]; }
+    // Grab the first real uploads image in the card, regardless of lazy-load attribute
+    const covM = block.match(/https?:\/\/[^"'\s]+?\/wp-content\/uploads\/[^"'\s]+?\.(?:jpg|jpeg|png|webp)/i);
+    if(covM) cover = covM[0];
     out.push({ slug:slug, title:(titleM?tmDecode(titleM[1]):tmTitleFromSlug(slug)), cover:cover });
   }
   return out;
