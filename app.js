@@ -997,9 +997,13 @@ function openSettings(){
   const fSlider=document.getElementById('font-slider');if(fSlider)fSlider.value=st.fontSize;
   const fVal=document.getElementById('font-size-val');if(fVal)fVal.textContent=st.fontSize+'px';
   const safe=document.getElementById('safe-toggle');if(safe)safe.classList.toggle('on',st.safeMode);
-  document.getElementById('settings-overlay').classList.add('open');
+  var ov=document.getElementById('settings-overlay');
+  ov.classList.add('open');
+  // Force immediate paint (iOS PWA only repainted on next layout change)
+  ov.style.opacity='1'; ov.style.pointerEvents='all';
+  void ov.offsetWidth;
 }
-function closeSettings(){document.getElementById('settings-overlay').classList.remove('open');}
+function closeSettings(){var ov=document.getElementById('settings-overlay');ov.classList.remove('open');ov.style.opacity='';ov.style.pointerEvents='';}
 function setTheme(t){
   S.settings.theme=t;save('lyeiuns-settings',S.settings);applyTheme();
   document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('active'));
@@ -3751,3 +3755,23 @@ function attachScanDoubleTap(el){
     if(!e.target.closest('#scan-ctrl')) toggleScanCtrl();
   };
 }
+
+// ── Brightness / screen dim (night reading) ─────────────────────────────────
+function setDim(v){
+  v = parseInt(v, 10); if(isNaN(v)) v = 100;
+  var o = document.getElementById('dim-overlay');
+  if(o) o.style.opacity = ((100 - v) / 100).toFixed(2);   // 100% = no dim, 30% = heavy dim
+  var lbl = document.getElementById('dim-val'); if(lbl) lbl.textContent = v + '%';
+  try { localStorage.setItem('lyeiuns-dim', v); } catch(e){}
+}
+(function initDim(){
+  function apply(){
+    var v = null;
+    try { v = localStorage.getItem('lyeiuns-dim'); } catch(e){}
+    if(v == null) return;
+    var s = document.getElementById('dim-slider'); if(s) s.value = v;
+    setDim(v);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+})();
